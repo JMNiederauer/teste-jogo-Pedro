@@ -1,0 +1,389 @@
+# Create a mobile-first, single-file HTML game (grid maze "Circuit Escape") with touch controls and quiz gates.
+from textwrap import dedent
+path = "/mnt/data/pedro_circuit_escape.html"
+html = dedent("""\
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1">
+<title>Pedro — Circuit Escape</title>
+<style>
+  :root{--bg:#071207;--fg:#e0f1be;--p1:#0f3810;--p2:#2b5a2b;--p3:#8bac0f;--p4:#9bbc0f;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  #wrap{display:flex;flex-direction:column;height:100%;}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 12px;background:#0c1a0c;border-bottom:1px solid #2f5f2f}
+  #game{flex:1;display:flex;align-items:center;justify-content:center;touch-action:none}
+  canvas{image-rendering:pixelated;background:#071207}
+  .stats{display:flex;gap:14px;align-items:center;font-weight:600}
+  .panel{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+  .panel.show{display:flex}
+  .card{width:min(92%,700px);background:#0c1a0c;border:1px solid #2f5f2f;border-radius:12px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{padding:10px 14px;border:1px solid #2f5f2f;border-radius:12px;background:#183a18;color:var(--fg);cursor:pointer}
+  .choice{padding:10px;border:1px solid #2f5f2f;border-radius:12px;background:#0f210f;cursor:pointer;flex:1}
+  .controls{position:fixed;left:0;right:0;bottom:0;display:flex;gap:12px;justify-content:center;padding:12px 12px 16px;z-index:10}
+  .dpad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,64px);gap:8px}
+  .dpad button{border-radius:12px;border:1px solid #2f5f2f;background:#183a18;color:var(--fg);font-size:20px}
+  .dpad button:active{filter:brightness(1.1)}
+  @media (min-width:720px){ .dpad{grid-template-columns:repeat(3,80px);grid-template-rows:repeat(3,80px)} }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <div class="stats">
+      <span>❤ <b id="lifes">3</b></span>
+      <span>★ <b id="tokens">0</b></span>
+      <span>Fase: <b id="stage">1</b>/5</span>
+    </div>
+    <button id="reset" class="btn">Reiniciar</button>
+  </header>
+  <div id="game"><canvas id="cv" width="720" height="720"></canvas></div>
+</div>
+
+<!-- D-Pad touch -->
+<div class="controls">
+  <div class="dpad">
+    <span></span><button id="up">↑</button><span></span>
+    <button id="left">←</button><span></span><button id="right">→</button>
+    <span></span><button id="down">↓</button><span></span>
+  </div>
+</div>
+
+<!-- Cutscene -->
+<div id="cutscene" class="panel show">
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;">Prisão Digital</h2>
+    <p>Damien capturou Pedro e o prendeu <b>dentro do Kernel</b>. Saia do labirinto de circuitos: colete <b>tokens</b> respondendo corretamente. Portas com cadeado abrem com tokens.</p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+      <button id="start" class="btn">Começar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quiz -->
+<div id="quiz" class="panel">
+  <div class="card">
+    <h3 style="margin:0 0 8px 0;">Questão</h3>
+    <p id="qText">...</p>
+    <div id="qChoices" class="row"></div>
+    <div id="qOpen" class="row" style="display:none;">
+      <input id="qInput" type="text" placeholder="Digite sua resposta" style="flex:1;padding:10px;border-radius:12px;border:1px solid #2f5f2f;background:#0b160b;color:#e0f1be;">
+      <button id="qSend" class="btn">Responder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vitória -->
+<div id="victory" class="panel">
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;">Fuga concluída!</h2>
+    <p>Pedro saiu do Kernel. Damien foi preso.</p>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button id="again" class="btn">Jogar de novo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== Dados do jogo ====== */
+const deck=[
+  { tipo:'mc', tag:'soberania', q:'No material, soberania significa:', a:['Dependência externa','Autonomia para leis e governo','Poder só do Executivo'], correta:1 },
+  { tipo:'vf', tag:'soberania', q:'Soberania implica que nenhum outro país manda no ordenamento brasileiro.', correta:true },
+  { tipo:'vf', tag:'pluralismo', q:'Pluralismo político garante liberdade de ideias e partidos.', correta:true },
+  { tipo:'mc', tag:'cidadania', q:'Cidadania envolve:', a:['Só deveres','Direitos e deveres','Somente votar'], correta:1 },
+  { tipo:'aberta', tag:'dignidade', q:'Complete: A _________ da pessoa humana afirma o valor de toda pessoa.', resposta:'dignidade', norm:true },
+  { tipo:'vf', tag:'valores', q:'Valores sociais do trabalho reconhecem a importância do trabalhador e condições justas.', correta:true },
+  { tipo:'mc', tag:'livre', q:'Livre iniciativa significa:', a:['Proibição de abrir negócios','Só o Estado empreende','Liberdade para abrir negócios próprios'], correta:2 }
+];
+function norm(s){return s.toString().toLowerCase().trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}
+
+/* ====== Labirintos (5 estágios) ======
+Códigos: 0 piso, 1 parede, 2 porta que consome 1 token, 3 portal de pergunta, 4 saída
+Mapa é 13x13 (células grandes, legível em mobile)
+*/
+const STAGES=[
+  // Estágio 1: tutorial curto
+  { need:2, tags:['soberania','pluralismo'], map:[
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,3,0,0,0,1,2,0,1],
+    [1,0,1,0,1,0,1,1,0,1,1,0,1],
+    [1,0,1,0,0,0,0,1,0,0,0,0,1],
+    [1,0,1,1,1,1,0,1,1,1,1,0,1],
+    [1,0,0,0,0,1,0,0,0,0,1,0,1],
+    [1,1,1,1,0,1,1,1,1,0,1,0,1],
+    [1,0,0,1,0,0,0,0,1,0,1,0,1],
+    [1,0,1,1,1,1,1,0,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,1,3,1,0,1],
+    [1,1,1,1,1,0,1,0,1,2,1,4,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ], start:[1,1] },
+
+  // Estágio 2
+  { need:2, tags:['cidadania','dignidade'], map:[
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,1,0,3,0,0,2,0,1],
+    [1,0,1,1,0,1,0,1,1,0,1,0,1],
+    [1,0,1,0,0,0,0,0,1,0,1,0,1],
+    [1,0,1,0,1,1,1,0,1,0,1,0,1],
+    [1,0,0,0,1,0,0,0,1,0,1,0,1],
+    [1,1,1,0,1,0,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,0,0,1,3,1],
+    [1,0,1,1,1,0,1,0,1,1,1,2,1],
+    [1,0,0,0,1,0,0,0,0,0,0,4,1],
+    [1,1,1,0,1,1,1,1,1,1,0,0,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ], start:[1,1] },
+
+  // Estágio 3
+  { need:2, tags:['valores','livre'], map:[
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,0,0,0,1,0,3,0,1],
+    [1,1,1,0,1,0,1,0,1,0,1,0,1],
+    [1,0,0,0,0,0,1,0,0,0,1,0,1],
+    [1,0,1,1,1,0,1,1,1,0,1,0,1],
+    [1,0,1,2,1,0,0,0,1,0,1,0,1],
+    [1,0,1,0,1,1,1,0,1,0,1,0,1],
+    [1,0,1,0,0,0,1,0,1,0,1,0,1],
+    [1,0,1,1,1,0,1,0,1,0,1,4,1],
+    [1,3,0,0,1,0,0,0,1,0,1,0,1],
+    [1,2,1,0,1,1,1,0,1,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,2,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ], start:[1,1] },
+
+  // Estágio 4
+  { need:3, tags:['soberania','pluralismo','cidadania'], map:[
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,3,0,2,0,1],
+    [1,0,1,1,1,0,1,0,1,0,1,0,1],
+    [1,0,1,0,0,0,1,0,1,0,1,0,1],
+    [1,0,1,0,1,0,1,0,1,0,1,0,1],
+    [1,0,0,0,1,0,0,0,1,0,0,0,1],
+    [1,1,1,0,1,1,1,0,1,1,1,0,1],
+    [1,3,0,0,0,0,0,0,0,0,1,0,1],
+    [1,2,1,1,1,1,1,1,1,0,1,4,1],
+    [1,0,0,0,0,0,2,0,0,0,1,0,1],
+    [1,0,1,1,1,0,1,1,1,0,1,0,1],
+    [1,0,0,0,0,0,0,0,0,0,2,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ], start:[1,1] },
+
+  // Estágio 5 (final)
+  { need:3, tags:['dignidade','valores','livre'], map:[
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,0,3,0,1,0,2,0,1],
+    [1,0,1,0,1,0,1,0,1,0,1,0,1],
+    [1,0,1,0,0,0,1,0,0,0,1,0,1],
+    [1,0,1,1,1,0,1,1,1,0,1,0,1],
+    [1,0,0,0,1,0,0,0,1,0,1,0,1],
+    [1,1,1,0,1,1,1,0,1,0,1,0,1],
+    [1,3,0,0,0,0,1,0,0,0,1,3,1],
+    [1,2,1,1,1,0,1,0,1,1,1,2,1],
+    [1,0,0,0,1,0,0,0,0,0,0,4,1],
+    [1,1,1,0,1,1,1,1,1,1,0,0,1],
+    [1,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
+  ], start:[1,1] }
+];
+
+const LS='circuit_escape_v1';
+let state = {stage:0, lifes:3, tokens:0};
+try{ const s=localStorage.getItem(LS); if(s) state=JSON.parse(s);}catch{}
+function save(){ localStorage.setItem(LS, JSON.stringify(state)); }
+function hud(){ document.getElementById('lifes').textContent=state.lifes; document.getElementById('tokens').textContent=state.tokens; document.getElementById('stage').textContent=state.stage+1; }
+
+/* ====== Canvas e render ====== */
+const cv=document.getElementById('cv'); const ctx=cv.getContext('2d');
+let cell=48; // tamanho da célula em px (auto-ajuste na resize)
+let px=1, py=1; // posição do Pedro
+let map=JSON.parse(JSON.stringify(STAGES[state.stage].map));
+let need=STAGES[state.stage].need;
+let tags=STAGES[state.stage].tags||[];
+
+function resize(){
+  // torna o canvas quadrado, ocupando largura da tela
+  const w = Math.min(window.innerWidth, window.innerHeight - 140);
+  cv.width = cv.height = Math.max(520, Math.min(720, w));
+  cell = Math.floor(cv.width / 13);
+  draw();
+}
+window.addEventListener('resize', resize);
+
+function drawGrid(){
+  // fundo com grid e trilhas grossas
+  ctx.fillStyle = '#071207'; ctx.fillRect(0,0,cv.width,cv.height);
+  // grid
+  for(let i=0;i<=13;i++){
+    ctx.strokeStyle = '#2b5a2b'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,i*cell); ctx.lineTo(13*cell,i*cell); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(i*cell,0); ctx.lineTo(i*cell,13*cell); ctx.stroke();
+  }
+  // trilhas horizontais
+  ctx.strokeStyle = '#8bac0f'; ctx.lineWidth=3;
+  for(let y=2;y<13;y+=3){ ctx.beginPath(); ctx.moveTo(0,y*cell+cell*0.5); ctx.lineTo(13*cell,y*cell+cell*0.5); ctx.stroke(); }
+}
+
+function drawMap(){
+  for(let y=0;y<13;y++) for(let x=0;x<13;x++){
+    const t=map[y][x];
+    const cx=x*cell, cy=y*cell;
+    if(t===1){ // parede
+      ctx.fillStyle='#0f3810'; ctx.fillRect(cx,cy,cell,cell);
+      ctx.strokeStyle='#9bbc0f'; ctx.strokeRect(cx+0.5,cy+0.5,cell-1,cell-1);
+    } else if(t===2){ // porta com cadeado (consome token)
+      ctx.fillStyle='#2b5a2b'; ctx.fillRect(cx,cy,cell,cell);
+      ctx.strokeStyle='#9bbc0f'; ctx.strokeRect(cx+0.5,cy+0.5,cell-1,cell-1);
+      // cadeado
+      ctx.fillStyle='#9bbc0f'; const s=cell*0.5;
+      ctx.fillRect(cx+cell*0.25,cy+cell*0.35,s,s*0.5);
+      ctx.beginPath(); ctx.arc(cx+cell*0.5, cy+cell*0.35, s*0.35, Math.PI, 0); ctx.stroke();
+    } else if(t===3){ // portal de pergunta
+      ctx.fillStyle='#183a18'; ctx.fillRect(cx,cy,cell,cell);
+      ctx.strokeStyle='#9bbc0f'; ctx.strokeRect(cx+0.5,cy+0.5,cell-1,cell-1);
+      ctx.fillStyle='#9bbc0f'; ctx.font=`${Math.floor(cell*0.6)}px monospace`;
+      ctx.fillText('?', cx+cell*0.32, cy+cell*0.7);
+    } else if(t===4){ // saída
+      ctx.fillStyle='#8bac0f'; ctx.fillRect(cx,cy,cell,cell);
+      ctx.strokeStyle='#9bbc0f'; ctx.lineWidth=2; ctx.strokeRect(cx+1,cy+1,cell-2,cell-2);
+      ctx.fillStyle='#071207'; ctx.fillRect(cx+cell*0.2, cy+cell*0.25, cell*0.6, cell*0.5);
+    } else {
+      // piso
+      ctx.fillStyle='#071e07'; ctx.fillRect(cx,cy,cell,cell);
+    }
+  }
+}
+
+function drawPedro(){
+  const cx=px*cell, cy=py*cell;
+  // corpo
+  ctx.fillStyle='#2b5a2b'; ctx.fillRect(cx+cell*0.25, cy+cell*0.2, cell*0.5, cell*0.5);
+  ctx.strokeStyle='#9bbc0f'; ctx.strokeRect(cx+cell*0.25, cy+cell*0.2, cell*0.5, cell*0.5);
+  // pernas
+  ctx.fillStyle='#8bac0f'; ctx.fillRect(cx+cell*0.28, cy+cell*0.7, cell*0.16, cell*0.2);
+  ctx.fillRect(cx+cell*0.56, cy+cell*0.7, cell*0.16, cell*0.2);
+  // "olho" pixel
+  ctx.fillStyle='#9bbc0f'; ctx.fillRect(cx+cell*0.45, cy+cell*0.35, cell*0.08, cell*0.08);
+}
+
+function draw(){ ctx.clearRect(0,0,cv.width,cv.height); drawGrid(); drawMap(); drawPedro(); }
+
+/* ====== Movimento e regras ====== */
+function inBounds(nx,ny){ return nx>=0&&nx<13&&ny>=0&&ny<13; }
+function move(dx,dy){
+  const nx=px+dx, ny=py+dy;
+  if(!inBounds(nx,ny)) return;
+  const t=map[ny][nx];
+  if(t===1) return; // parede
+  if(t===2){ // porta com token
+    if(state.tokens>0){
+      state.tokens--; map[ny][nx]=0; save(); hud();
+    } else { return; }
+  }
+  px=nx; py=ny; draw();
+  checkTile();
+}
+
+function pickQuestion(tags){
+  const pool = deck.filter(q=>!tags||tags.length===0||tags.includes(q.tag));
+  return pool[Math.floor(Math.random()*pool.length)] || deck[0];
+}
+
+const quizPanel=document.getElementById('quiz');
+const qText=document.getElementById('qText');
+const qChoices=document.getElementById('qChoices');
+const qOpen=document.getElementById('qOpen');
+const qInput=document.getElementById('qInput');
+const qSend=document.getElementById('qSend');
+
+function openQuiz(){
+  const q=pickQuestion(tags);
+  quizPanel.classList.add('show');
+  qText.textContent=q.q; qChoices.innerHTML=''; qOpen.style.display='none';
+  function answer(ok){
+    quizPanel.classList.remove('show');
+    if(ok){
+      state.tokens++; save(); hud();
+      // Remove um portal próximo (converte 3 -> 0 mais próximo do jogador)
+      let best=null,bd=1e9;
+      for(let y=0;y<13;y++)for(let x=0;x<13;x++) if(map[y][x]===3){
+        const d=Math.abs(x-px)+Math.abs(y-py); if(d<bd){bd=d;best=[x,y];}
+      }
+      if(best) map[best[1]][best[0]]=0;
+      draw();
+    } else {
+      state.lifes--; save(); hud();
+      if(state.lifes<=0){ // reset stage
+        state.lifes=3; state.tokens=0; map=JSON.parse(JSON.stringify(STAGES[state.stage].map)); px=STAGES[state.stage].start[0]; py=STAGES[state.stage].start[1]; save(); hud(); draw();
+      }
+    }
+  }
+  if(q.tipo==='mc'||q.tipo==='vf'){
+    const alts = q.tipo==='vf'?['Verdadeiro','Falso']:q.a;
+    alts.forEach((t,i)=>{
+      const b=document.createElement('button'); b.className='choice'; b.textContent=t;
+      b.onclick=()=>answer(q.tipo==='vf' ? (i===(q.correta?0:1)) : (i===q.correta));
+      qChoices.appendChild(b);
+    });
+  } else {
+    qOpen.style.display='flex'; qInput.value='';
+    qSend.onclick=()=>{
+      const ok=(q.norm?norm(qInput.value):qInput.value)===(q.norm?norm(q.resposta):q.resposta);
+      answer(ok);
+    };
+  }
+}
+
+function checkTile(){
+  const t=map[py][px];
+  if(t===3){ openQuiz(); } 
+  else if(t===4){ // saída
+    // precisa ter aberto as portas necessárias (implícito), então passa de estágio
+    state.stage++; state.tokens=0;
+    if(state.stage>=STAGES.length){
+      document.getElementById('victory').classList.add('show');
+      state.stage=0; map=JSON.parse(JSON.stringify(STAGES[0].map)); px=STAGES[0].start[0]; py=STAGES[0].start[1];
+    } else {
+      const st=STAGES[state.stage]; map=JSON.parse(JSON.stringify(st.map)); px=st.start[0]; py=st.start[1]; tags=st.tags; need=st.need;
+    }
+    save(); hud(); draw();
+  }
+}
+
+/* ====== Controles ====== */
+document.getElementById('up').onclick = ()=> move(0,-1);
+document.getElementById('down').onclick = ()=> move(0,1);
+document.getElementById('left').onclick = ()=> move(-1,0);
+document.getElementById('right').onclick = ()=> move(1,0);
+document.getElementById('reset').onclick = ()=>{
+  state={stage:0,lifes:3,tokens:0}; save();
+  const st=STAGES[0]; map=JSON.parse(JSON.stringify(st.map)); px=st.start[0]; py=st.start[1]; tags=st.tags; need=st.need; hud(); draw();
+};
+document.getElementById('start').onclick = ()=> document.getElementById('cutscene').classList.remove('show');
+document.getElementById('again').onclick = ()=>{ document.getElementById('victory').classList.remove('show'); state={stage:0,lifes:3,tokens:0}; save(); const st=STAGES[0]; map=JSON.parse(JSON.stringify(st.map)); px=st.start[0]; py=st.start[1]; tags=st.tags; need=st.need; hud(); draw(); };
+
+// teclado opcional
+window.addEventListener('keydown', (e)=>{
+  if(quizPanel.classList.contains('show')) return;
+  if(e.key==='ArrowUp') move(0,-1);
+  else if(e.key==='ArrowDown') move(0,1);
+  else if(e.key==='ArrowLeft') move(-1,0);
+  else if(e.key==='ArrowRight') move(1,0);
+});
+
+/* ====== Boot ====== */
+function boot(){
+  const st=STAGES[state.stage];
+  map=JSON.parse(JSON.stringify(st.map)); px=st.start[0]; py=st.start[1]; tags=st.tags; need=st.need; hud(); resize(); draw();
+}
+boot();
+</script>
+</body>
+</html>
+""")
+with open(path, "w", encoding="utf-8") as f:
+    f.write(html)
+path
