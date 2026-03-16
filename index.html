@@ -21,20 +21,30 @@ const css = `
   button:active{transform:scale(0.95)!important}
 `;
 
-// LAUDO — princípios que guiam cada decisão deste código:
-// 1. Memória operacional frágil → 1 conceito por vez, reta sempre disponível antes do erro
-// 2. Critério de avanço = estabilização, não "entendeu uma vez" → sessoesNecessarias por bloco
-// 3. Medo de errar / perfeccionismo → erro nunca "errado"; reta como apoio, nunca punição
-// 4. Evocação instável → revisão no início de cada bloco E entre sessões
-// 5. Raramente pede ajuda → botão da mãe grande, sempre visível; reta acessível SEM precisar errar
-// 6. Expressão escrita prejudicada → alternativas curtas, sem texto longo nas opções
-// 7. Relatório rico → mãe vê qual questão específica precisou de mediação
+// LAUDO (Caroline da Costa Siqueira, 2025) — princípios que guiam cada decisão:
+// 1. Memória episódica GRAVE → "lembrete" do conceito-núcleo ao iniciar sessão 2+
+// 2. Memória operacional verbal moderada → 1 conceito por vez, nunca regra antes do visual
+// 3. Atenção auditiva moderada → textos curtos: máx 1-2 frases por tela
+// 4. Critério de avanço = estabilização → sessoesNecessarias por bloco (localStorage)
+// 5. Perfeccionismo percentil 91% → revisão com retry explícito, nunca só shake silencioso
+// 6. Controle inibitório fraco → reta disponível ANTES do erro, não como punição
+// 7. Raramente pede ajuda → botão da mãe sempre visível; reta acessível sem precisar errar
+// 8. Expressão escrita GRAVE → múltipla escolha, opções curtas, sem produção textual
+// 9. Relatório rico → mãe vê qual questão específica precisou de mediação
 
 const BLOCOS = [
   {
     id:1, emoji:"🎮", titulo:"Números no Dia a Dia",
     desc:"Negativos que você já conhece",
     sessoesNecessarias:2,
+    // lembrete: mostrado ao iniciar sessão 2+ — laudo: memória episódica GRAVE
+    lembrete:{
+      titulo:"Lembrou? ↓",
+      itens:[
+        {t:"regra", v:"👈 Esquerda = NEGATIVOS\n👉 Direita = POSITIVOS"},
+        {t:"reta", hl:0},
+      ]
+    },
     grad:["#1E40AF","#3B82F6"], revisao:null,
     slides:[
       { titulo:"Você já usou negativos! 🎮",
