@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 const WHATSAPP = "5591993922666";
+const STORAGE_KEY = "pedro-jogo-v3";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
@@ -20,100 +21,103 @@ const css = `
   button:active{transform:scale(0.95)!important}
 `;
 
-// Laudo: memória visuoespacial 99,9° percentil → reta numérica animada em TUDO
-// Laudo: memória operacional verbal comprometida → 1 conceito por vez, nunca regra antes do visual
-// Laudo: controle inibitório fraco → nunca "errado", sempre suporte
-// Laudo: medo de errar / perfeccionismo → erro invisível para ele, visível para a mãe
-// Laudo: memória episódica fraca → revisão obrigatória no início de cada bloco
-// Laudo: compreensão verbal preservada → exemplos do universo dele (Roblox, jiu-jitsu)
-// Laudo: raramente pede ajuda → botão da mãe grande, quente, sempre visível
+// LAUDO — princípios que guiam cada decisão deste código:
+// 1. Memória operacional frágil → 1 conceito por vez, reta sempre disponível antes do erro
+// 2. Critério de avanço = estabilização, não "entendeu uma vez" → sessoesNecessarias por bloco
+// 3. Medo de errar / perfeccionismo → erro nunca "errado"; reta como apoio, nunca punição
+// 4. Evocação instável → revisão no início de cada bloco E entre sessões
+// 5. Raramente pede ajuda → botão da mãe grande, sempre visível; reta acessível SEM precisar errar
+// 6. Expressão escrita prejudicada → alternativas curtas, sem texto longo nas opções
+// 7. Relatório rico → mãe vê qual questão específica precisou de mediação
 
 const BLOCOS = [
   {
     id:1, emoji:"🎮", titulo:"Números no Dia a Dia",
     desc:"Negativos que você já conhece",
-    grad:["#1E40AF","#3B82F6"], desbloqueado:true, revisao:null,
+    sessoesNecessarias:2,
+    grad:["#1E40AF","#3B82F6"], revisao:null,
     slides:[
-      { titulo:"Você já usou números negativos! 🎮",
+      { titulo:"Você já usou negativos! 🎮",
         itens:[
-          {t:"fala", v:"No Roblox e no jiu-jitsu, você usa negativos sem perceber. Olha só:"},
+          {t:"fala", v:"No Roblox e no jiu-jitsu, você usa negativos sem perceber:"},
           {t:"cards", cards:[
-            {e:"🎮",tit:"Roblox",     ex:"Vida: −30",         exp:"Tomou dano além do limite!"},
-            {e:"🥋",tit:"Jiu-jitsu",  ex:"Placar: −3 pts",    exp:"Penalidade — perdeu 3 pontos"},
-            {e:"💸",tit:"Grana",       ex:"Saldo: −R$15",      exp:"Gastou mais do que tinha"},
-            {e:"🏢",tit:"Elevador",    ex:"Andar −1",          exp:"1 andar abaixo do térreo"},
-            {e:"⚽",tit:"Futebol",     ex:"Saldo de gols −2",  exp:"Tomou 2 gols a mais"},
+            {e:"🎮",tit:"Roblox",    ex:"Vida: −30",       exp:"Tomou dano além do limite!"},
+            {e:"🥋",tit:"Jiu-jitsu", ex:"Placar: −3 pts",  exp:"Penalidade — perdeu 3 pontos"},
+            {e:"💸",tit:"Grana",      ex:"Saldo: −R$15",   exp:"Gastou mais do que tinha"},
+            {e:"🏢",tit:"Elevador",   ex:"Andar −1",       exp:"1 andar abaixo do térreo"},
           ]},
-          {t:"dica", v:"📌 Negativo = abaixo do zero, perdendo, devendo.\nPositivo = acima do zero, ganhando, sobrando!"},
+          {t:"dica", v:"📌 Negativo = abaixo do zero.\nPositivo = acima do zero."},
         ]
       },
       { titulo:"O zero é o ponto de partida 🎯",
         itens:[
-          {t:"fala", v:"O zero é a referência — é de onde tudo começa."},
+          {t:"fala", v:"O zero é a referência. Tudo começa aqui."},
           {t:"reta", hl:0},
-          {t:"regra", v:"👈  Esquerda do zero  →  NEGATIVOS\n👉  Direita do zero  →  POSITIVOS"},
-          {t:"dica", v:"🐕 O Sauron fica parado no zero.\nPara frente = positivo. Para trás = negativo."},
+          {t:"regra", v:"👈  Esquerda = NEGATIVOS\n👉  Direita = POSITIVOS"},
+          {t:"dica", v:"🐕 O Sauron fica no zero.\nPara frente = positivo. Para trás = negativo."},
         ]
       },
     ],
     questoes:[
-      {ctx:"🎮 No Roblox, sua vida ficou em −30.",perg:"O que isso significa?",
-       ops:["Você tem 30 de vida sobrando","Você tomou dano além do limite","Ganhou 30 de vida","Sua vida está zerada"],
-       ok:1,feed:"Exato! Vida negativa = você tomou mais dano do que sua vida permitia.",nl:{end:-4}},
-      {ctx:"🥋 No jiu-jitsu, você levou penalidade de −3 pontos.",perg:"O que aconteceu com seu placar?",
+      {ctx:"🎮 No Roblox, vida em −30.",perg:"O que isso significa?",
+       ops:["Tem 30 de vida","Tomou dano além do limite","Ganhou 30 de vida","Vida zerada"],
+       ok:1,feed:"Vida negativa = tomou mais dano do que a vida permitia.",nl:{end:-4}},
+      {ctx:"🥋 Jiu-jitsu: penalidade de −3 pontos.",perg:"O que aconteceu?",
        ops:["Ganhou 3 pontos","Ficou zerado","Perdeu 3 pontos","Dobrou a pontuação"],
-       ok:2,feed:"Isso! Penalidade negativa = você perdeu 3 pontos.",nl:{end:-3}},
-      {ctx:"💸 Você tinha R$10 e gastou R$25.",perg:"Qual é o seu saldo agora?",
+       ok:2,feed:"Penalidade negativa = perdeu 3 pontos.",nl:{end:-3}},
+      {ctx:"💸 Tinha R$10 e gastou R$25.",perg:"Qual é o saldo?",
        ops:["R$35","R$15","−R$15","Zero"],
-       ok:2,feed:"Correto! Gastou mais do que tinha: ficou com −R$15.",nl:{end:-3}},
-      {ctx:"🏢 O estacionamento fica no andar −2.",perg:"Onde fica esse andar?",
-       ops:["2 andares acima do térreo","No térreo","2 andares abaixo do térreo","No último andar"],
-       ok:2,feed:"Isso! Andar −2 = 2 andares abaixo do térreo.",nl:{end:-2}},
+       ok:2,feed:"Gastou mais do que tinha: ficou com −R$15.",nl:{end:-3}},
+      {ctx:"🏢 Estacionamento no andar −2.",perg:"Onde fica?",
+       ops:["2 andares acima","No térreo","2 andares abaixo","No último andar"],
+       ok:2,feed:"Andar −2 = 2 andares abaixo do térreo.",nl:{end:-2}},
     ]
   },
   {
     id:2, emoji:"📍", titulo:"A Reta Numérica",
     desc:"O mapa de todos os números",
-    grad:["#5B21B6","#7C3AED"], desbloqueado:false,
+    sessoesNecessarias:2,
+    grad:["#5B21B6","#7C3AED"],
     revisao:[
-      {perg:"Vida de −30 no Roblox significa:",ops:["Você tem 30 de vida","Tomou dano além do limite","Ganhou 30 de vida"],ok:1},
-      {perg:"Penalidade de −3 no jiu-jitsu significa:",ops:["Ganhou 3 pontos","Ficou zerado","Perdeu 3 pontos"],ok:2},
+      {perg:"Vida −30 no Roblox =",ops:["Tem 30 de vida","Tomou dano além do limite","Ganhou 30"],ok:1},
+      {perg:"Penalidade −3 no jiu-jitsu =",ops:["Ganhou 3 pontos","Ficou zerado","Perdeu 3 pontos"],ok:2},
     ],
     slides:[
       { titulo:"A reta numérica — o mapa dos números 🗺️",
         itens:[
-          {t:"fala", v:"Na reta numérica, todo número tem um lugar fixo. Como o mapa do Roblox — cada posição tem um endereço!"},
+          {t:"fala", v:"Na reta numérica, todo número tem um lugar fixo. Como o mapa do Roblox!"},
           {t:"reta", hl:0},
-          {t:"lista", vs:["👉 Direita = positivos","👈 Esquerda = negativos","📍 Mais à direita → MAIOR","📍 Mais à esquerda → MENOR"]},
-          {t:"dica", v:"🐕 O Sauron parte sempre do zero.\nPara frente = positivo. Para trás = negativo."},
+          {t:"lista", vs:["👉 Direita = positivos","👈 Esquerda = negativos","Mais à direita → MAIOR","Mais à esquerda → MENOR"]},
+          {t:"dica", v:"🐕 Mais à direita = maior.\nMais à esquerda = menor."},
         ]
       },
       { titulo:"Localizando números na reta 📍",
         itens:[
-          {t:"fala", v:"Cada número tem seu lugar fixo. Veja onde cada um fica:"},
+          {t:"fala", v:"Cada número tem seu lugar fixo. Veja:"},
           {t:"retaEx", ex:[{n:4,desc:"4 passos à direita do zero"},{n:-3,desc:"3 passos à esquerda do zero"}]},
         ]
       },
     ],
     questoes:[
-      {ctx:"📍 Na reta numérica:",perg:"Onde fica o número −4?",
-       ops:["4 passos à direita","No zero","4 passos à esquerda","Não existe na reta"],
-       ok:2,feed:"Isso! −4 fica 4 passos à esquerda do zero.",nl:{hl:-4}},
-      {ctx:"🎮 Placar do jogo: +6 ou −2.",perg:"Qual é maior?",
-       ops:["−2, porque 2 é menor","São iguais","+6, porque está à direita","−2, porque é negativo"],
-       ok:2,feed:"+6 está à direita de −2. Todo positivo é maior que todo negativo!",nl:{hl:6}},
-      {ctx:"📊 Compare: −5 e −1.",perg:"Qual é MAIOR: −5 ou −1?",
-       ops:["−5, porque 5>1","São iguais","−1, porque está mais à direita","−5, porque é mais negativo"],
-       ok:2,feed:"−1 está mais à direita que −5. Entre negativos, o mais perto do zero é o maior!",nl:{hl:-1}},
-      {ctx:"🥋 Placares: −3, +5, 0, −1.",perg:"Ordem do menor para o maior:",
+      {ctx:"📍 Na reta numérica:",perg:"Onde fica o −4?",
+       ops:["4 passos à direita","No zero","4 passos à esquerda","Não existe"],
+       ok:2,feed:"−4 fica 4 passos à esquerda do zero.",nl:{hl:-4}},
+      {ctx:"🎮 Placar: +6 ou −2.",perg:"Qual é maior?",
+       ops:["−2","São iguais","+6","Não dá saber"],
+       ok:2,feed:"+6 está à direita de −2. Positivo é sempre maior que negativo!",nl:{hl:6}},
+      {ctx:"📊 Compare: −5 e −1.",perg:"Qual é MAIOR?",
+       ops:["−5","São iguais","−1","São iguais"],
+       ok:2,feed:"−1 está mais à direita que −5. Entre negativos, mais perto do zero = maior!",nl:{hl:-1}},
+      {ctx:"🥋 Placares: −3, +5, 0, −1.",perg:"Do menor para o maior:",
        ops:["+5, 0, −1, −3","−3, +5, 0, −1","−3, −1, 0, +5","0, −1, −3, +5"],
-       ok:2,feed:"Da esquerda para a direita na reta: −3, −1, 0, +5.",nl:{hl:0}},
+       ok:2,feed:"Na reta, da esquerda para a direita: −3, −1, 0, +5.",nl:{hl:0}},
     ]
   },
   {
     id:3, emoji:"📏", titulo:"Módulo — a distância",
     desc:"Quantos passos até o zero?",
-    grad:["#065F46","#10B981"], desbloqueado:false,
+    sessoesNecessarias:2,
+    grad:["#065F46","#10B981"],
     revisao:[
       {perg:"−4 fica à esquerda ou direita do zero?",ops:["À direita","No zero","À esquerda"],ok:2},
       {perg:"Qual é MAIOR: −2 ou −7?",ops:["−7","São iguais","−2"],ok:2},
@@ -121,33 +125,40 @@ const BLOCOS = [
     slides:[
       { titulo:"Módulo = distância até o zero 📏",
         itens:[
-          {t:"fala", v:"O módulo de um número é quantos passos ele está do zero. Só a distância conta — não importa o lado!"},
+          {t:"fala", v:"O módulo é quantos passos o número está do zero.\nSó a distância conta — não importa o lado!"},
           {t:"modEx", ns:[5,-5,0]},
-          {t:"dica", v:"🎮 Como a distância até a base no mapa do Roblox — sempre positiva, independente da direção!"},
+          {t:"dica", v:"🎮 Como a distância até a base no mapa.\nSempre positiva, qualquer que seja a direção!"},
         ]
       },
       { titulo:"Como escrever o módulo ✍️",
         itens:[
           {t:"fala", v:"O módulo se escreve com duas barretas:"},
-          {t:"notacao", ns:[{e:"|+5| = 5",d:"5 passos do zero"},{e:"|−5| = 5",d:"também 5 passos — mesma distância!"},{e:"|0| = 0",d:"zero passos — já está no zero"}]},
-          {t:"dica", v:"🐕 O módulo é SEMPRE positivo ou zero. Distância nunca é negativa!"},
+          {t:"notacao", ns:[
+            {e:"|+5| = 5",d:"5 passos do zero"},
+            {e:"|−5| = 5",d:"também 5 passos — mesma distância!"},
+            {e:"|0| = 0", d:"zero passos — já está no zero"},
+          ]},
+          {t:"dica", v:"🐕 O módulo é SEMPRE positivo ou zero!"},
         ]
       },
     ],
     questoes:[
-      {ctx:"🎮 No mapa do Roblox, você está na posição −6.",perg:"Quantos passos você está do zero? (|−6| = ?)",
-       ops:["−6 passos","0 passos","6 passos","12 passos"],ok:2,feed:"|−6| = 6. Seis passos até o zero!",nl:{hl:-6,dist:true}},
-      {ctx:"📏 Calcule:",perg:"|−4| = ?",ops:["−4","0","4","8"],ok:2,feed:"|−4| = 4. O módulo é sempre positivo!",nl:{hl:-4,dist:true}},
-      {ctx:"📏 Calcule:",perg:"|+7| = ?",ops:["−7","0","7","14"],ok:2,feed:"|+7| = 7. Sete passos do zero!",nl:{hl:7,dist:true}},
-      {ctx:"🥋 Compare os módulos: −8 e +3.",perg:"Qual módulo é MAIOR: |−8| ou |+3|?",
-       ops:["|+3|, porque é positivo","São iguais","|−8|, porque 8>3","Não tem como saber"],
+      {ctx:"🎮 Você está na posição −6.",perg:"|−6| = ?",
+       ops:["−6","0","6","12"],ok:2,feed:"|−6| = 6. Seis passos até o zero!",nl:{hl:-6,dist:true}},
+      {ctx:"📏 Calcule:",perg:"|−4| = ?",
+       ops:["−4","0","4","8"],ok:2,feed:"|−4| = 4. O módulo é sempre positivo!",nl:{hl:-4,dist:true}},
+      {ctx:"📏 Calcule:",perg:"|+7| = ?",
+       ops:["−7","0","7","14"],ok:2,feed:"|+7| = 7. Sete passos do zero!",nl:{hl:7,dist:true}},
+      {ctx:"🥋 Compare: −8 e +3.",perg:"Qual módulo é MAIOR: |−8| ou |+3|?",
+       ops:["|+3|","São iguais","|−8|","Não dá saber"],
        ok:2,feed:"|−8|=8 e |+3|=3. Como 8>3, o módulo de −8 é maior!",nl:{hl:-8,dist:true}},
     ]
   },
   {
     id:4, emoji:"🪞", titulo:"Simétrico e Oposto",
     desc:"O reflexo no espelho",
-    grad:["#92400E","#F59E0B"], desbloqueado:false,
+    sessoesNecessarias:2,
+    grad:["#92400E","#F59E0B"],
     revisao:[
       {perg:"|−9| é igual a:",ops:["−9","0","9"],ok:2},
       {perg:"O módulo é sempre:",ops:["negativo","positivo ou zero","igual ao número"],ok:1},
@@ -155,49 +166,62 @@ const BLOCOS = [
     slides:[
       { titulo:"Simétrico = reflexo no espelho 🪞",
         itens:[
-          {t:"fala", v:"O simétrico de um número está do OUTRO LADO do zero, na mesma distância."},
+          {t:"fala", v:"O simétrico fica do OUTRO LADO do zero, na mesma distância."},
           {t:"espelho", pares:[{n:4,s:-4},{n:-3,s:3}]},
-          {t:"dica", v:"🎮 Se você está na posição +4 no mapa, o reflexo no espelho fica em −4. Mesma distância, lado oposto!"},
-          {t:"regra", v:"O simétrico do zero é o próprio zero —\nele fica exatamente no centro!"},
+          {t:"dica", v:"🎮 Posição +4 no mapa → reflexo fica em −4.\nMesma distância, lado oposto!"},
+          {t:"regra", v:"O simétrico do zero é o próprio zero."},
         ]
       },
     ],
     questoes:[
-      {ctx:"🪞 Espelho na reta:",perg:"Qual é o simétrico de +5?",ops:["+5","0","−5","+10"],ok:2,feed:"Simétrico de +5 é −5. Mesma distância, lado oposto!",nl:{hl:5}},
-      {ctx:"🪞 Espelho na reta:",perg:"Qual é o simétrico de −3?",ops:["−3","0","+3","−6"],ok:2,feed:"Simétrico de −3 é +3. Atravessa o zero para o outro lado!",nl:{hl:-3}},
-      {ctx:"🪞 Caso especial:",perg:"Qual é o simétrico do zero?",ops:["+1","−1","0","não existe"],ok:2,feed:"O zero é simétrico de si mesmo!",nl:{hl:0}},
-      {ctx:"🎮 Sua posição no mapa é −7.",perg:"Qual é o simétrico de −7?",ops:["−7","0","+7","+14"],ok:2,feed:"Simétrico de −7 é +7. Mesmo módulo, lado oposto!",nl:{hl:-7}},
+      {ctx:"🪞 Espelho na reta:",perg:"Simétrico de +5?",
+       ops:["+5","0","−5","+10"],ok:2,feed:"Simétrico de +5 é −5. Mesma distância, lado oposto!",nl:{hl:5}},
+      {ctx:"🪞 Espelho na reta:",perg:"Simétrico de −3?",
+       ops:["−3","0","+3","−6"],ok:2,feed:"Simétrico de −3 é +3. Atravessa o zero para o outro lado!",nl:{hl:-3}},
+      {ctx:"🪞 Caso especial:",perg:"Simétrico do zero?",
+       ops:["+1","−1","0","não existe"],ok:2,feed:"O zero é simétrico de si mesmo!",nl:{hl:0}},
+      {ctx:"🎮 Posição no mapa: −7.",perg:"Simétrico de −7?",
+       ops:["−7","0","+7","+14"],ok:2,feed:"Simétrico de −7 é +7. Mesmo módulo, lado oposto!",nl:{hl:-7}},
     ]
   },
   {
     id:5, emoji:"👣", titulo:"Sucessor e Antecessor",
     desc:"Um passo para frente ou para trás",
-    grad:["#991B1B","#EF4444"], desbloqueado:false,
+    sessoesNecessarias:2,
+    grad:["#991B1B","#EF4444"],
     revisao:[
       {perg:"Simétrico de −6 é:",ops:["−6","0","+6"],ok:2},
       {perg:"Simétrico de +2 é:",ops:["+2","0","−2"],ok:2},
     ],
     slides:[
-      { titulo:"Sucessor = um passo à direita. SEMPRE! 👉",
+      { titulo:"Sucessor = um passo para a DIREITA 👉",
         itens:[
-          {t:"fala", v:"O sucessor de qualquer número é sempre UM PASSO para a DIREITA. O antecessor é um passo para a ESQUERDA."},
-          {t:"passos", ps:[{n:3,suc:4,ant:2},{n:-3,suc:-2,ant:-4,nota:"⚠️ −2 está À DIREITA de −3!"},{n:0,suc:1,ant:-1}]},
-          {t:"dica", v:"🎮 Pensa nas fases do jogo na reta: fase seguinte = um passo à direita. Sempre!"},
-          {t:"aviso", v:"⚠️ O sucessor de −5 é −4, não −6!\nNa reta, −4 fica À DIREITA de −5."},
+          {t:"fala", v:"Sucessor = um passo para a DIREITA.\nAntecessor = um passo para a ESQUERDA."},
+          {t:"passos", ps:[
+            {n:3,suc:4,ant:2},
+            {n:-3,suc:-2,ant:-4,nota:"⚠️ −2 está À DIREITA de −3!"},
+            {n:0,suc:1,ant:-1},
+          ]},
+          {t:"aviso", v:"⚠️ Sucessor de −5 é −4, não −6!\nNa reta, −4 fica À DIREITA de −5."},
         ]
       },
     ],
     questoes:[
-      {ctx:"🎮 Você está na fase −4 do jogo.",perg:"Qual é a fase seguinte? (sucessor de −4)",ops:["−5","−4","−3","+4"],ok:2,feed:"Um passo para a DIREITA de −4 é −3. Próxima fase = −3!",nl:{hl:-4}},
-      {ctx:"🥋 Seu placar está em −2.",perg:"Qual era o placar antes? (antecessor de −2)",ops:["−1","−2","−3","+2"],ok:2,feed:"Um passo para a ESQUERDA de −2 é −3.",nl:{hl:-2}},
-      {ctx:"👣 Passo especial:",perg:"Qual é o sucessor de 0?",ops:["−1","0","+1","+2"],ok:2,feed:"Um passo para a direita do zero é +1!",nl:{start:0,end:1}},
-      {ctx:"👣 Passo especial:",perg:"Qual é o antecessor de +1?",ops:["+2","+1","0","−1"],ok:2,feed:"Um passo para a esquerda de +1 é 0.",nl:{hl:1}},
+      {ctx:"🎮 Fase −4 do jogo.",perg:"Fase seguinte? (sucessor de −4)",
+       ops:["−5","−4","−3","+4"],ok:2,feed:"Um passo para a DIREITA de −4 é −3.",nl:{hl:-4}},
+      {ctx:"🥋 Placar em −2.",perg:"Placar anterior? (antecessor de −2)",
+       ops:["−1","−2","−3","+2"],ok:2,feed:"Um passo para a ESQUERDA de −2 é −3.",nl:{hl:-2}},
+      {ctx:"👣 Especial:",perg:"Sucessor de 0?",
+       ops:["−1","0","+1","+2"],ok:2,feed:"Um passo para a direita do zero é +1!",nl:{start:0,end:1}},
+      {ctx:"👣 Especial:",perg:"Antecessor de +1?",
+       ops:["+2","+1","0","−1"],ok:2,feed:"Um passo para a esquerda de +1 é 0.",nl:{hl:1}},
     ]
   },
   {
     id:6, emoji:"➕", titulo:"Adição com Inteiros",
     desc:"Caminhar na reta para somar",
-    grad:["#4C1D95","#8B5CF6"], desbloqueado:false,
+    sessoesNecessarias:3,
+    grad:["#4C1D95","#8B5CF6"],
     revisao:[
       {perg:"Sucessor de −7 é:",ops:["−8","−7","−6"],ok:2},
       {perg:"Antecessor de −1 é:",ops:["0","−1","−2"],ok:2},
@@ -206,92 +230,113 @@ const BLOCOS = [
       { titulo:"Adição = caminhar na reta! 🚶",
         itens:[
           {t:"fala", v:"Para somar, você caminha na reta. O sinal diz a direção:"},
-          {t:"direcao", ds:[{sinal:"+ positivo",dir:"DIREITA",em:"👉"},{sinal:"− negativo",dir:"ESQUERDA",em:"👈"}]},
+          {t:"direcao", ds:[
+            {sinal:"+ positivo",dir:"DIREITA",em:"👉"},
+            {sinal:"− negativo",dir:"ESQUERDA",em:"👈"},
+          ]},
           {t:"exemploAnm", expr:"3 + (−5)", passos:["Começa no +3","−5 → anda 5 para a ESQUERDA","3→2→1→0→−1→−2","Chegou no −2 ✅"],nl:{start:3,end:-2}},
-          {t:"dica", v:"🎮 Você está no +3. Leva dano de 5. Onde fica? Na posição −2!"},
+          {t:"dica", v:"🎮 Você está no +3. Leva dano de 5. Ficou em −2!"},
         ]
       },
       { titulo:"A regra dos sinais",
         itens:[
-          {t:"fala", v:"Depois de entender o movimento, a regra faz sentido:"},
+          {t:"fala", v:"Depois de ver o movimento, a regra faz sentido:"},
           {t:"regraBox", rs:[
-            {tit:"Sinais IGUAIS",     reg:"Soma e mantém o sinal",              ex:"3+2=5\n(−3)+(−2)=−5"},
-            {tit:"Sinais DIFERENTES", reg:"Subtrai, sinal do maior módulo",     ex:"5+(−3)=+2\n3+(−5)=−2"},
+            {tit:"Sinais IGUAIS",      reg:"Soma e mantém o sinal",            ex:"3+2=5\n(−3)+(−2)=−5"},
+            {tit:"Sinais DIFERENTES",  reg:"Subtrai, sinal do maior módulo",   ex:"5+(−3)=+2\n3+(−5)=−2"},
           ]},
         ]
       },
     ],
     questoes:[
-      {ctx:"🎮 Você está na posição +2 e avança 4 casas.",perg:"Onde você para? (2+4=?)",ops:["−2","2","4","6"],ok:3,feed:"2+4=6. Andou 4 para a direita e chegou no +6!",nl:{start:2,end:6}},
-      {ctx:"💸 Você tinha R$5 e gastou R$8.",perg:"Qual é seu saldo? (5+(−8)=?)",ops:["13","3","−3","−13"],ok:2,feed:"5+(−8)=−3. Ficou devendo R$3!",nl:{start:5,end:-3}},
-      {ctx:"🥋 Placar era −3 e você ganhou 5 pontos.",perg:"Qual é seu placar? (−3+5=?)",ops:["−8","−3","+2","+8"],ok:2,feed:"−3+5=+2. Saiu do −3 e chegou no +2!",nl:{start:-3,end:2}},
-      {ctx:"🎮 Posição +4, levou dano de 6.",perg:"Onde você ficou? (4+(−6)=?)",ops:["+10","+2","−2","−10"],ok:2,feed:"4+(−6)=−2. Saiu do +4 e andou 6 para a esquerda!",nl:{start:4,end:-2}},
+      {ctx:"🎮 Posição +2, avança 4 casas.",perg:"2+4=?",
+       ops:["−2","2","4","6"],ok:3,feed:"2+4=6. Andou 4 para a direita!",nl:{start:2,end:6}},
+      {ctx:"💸 Tinha R$5 e gastou R$8.",perg:"5+(−8)=?",
+       ops:["13","3","−3","−13"],ok:2,feed:"5+(−8)=−3. Ficou devendo R$3!",nl:{start:5,end:-3}},
+      {ctx:"🥋 Placar −3, ganhou 5 pontos.",perg:"−3+5=?",
+       ops:["−8","−3","+2","+8"],ok:2,feed:"−3+5=+2. Saiu do −3 e chegou no +2!",nl:{start:-3,end:2}},
+      {ctx:"🎮 Posição +4, levou dano de 6.",perg:"4+(−6)=?",
+       ops:["+10","+2","−2","−10"],ok:2,feed:"4+(−6)=−2. Andou 6 para a esquerda!",nl:{start:4,end:-2}},
     ]
   },
   {
-    id:7, emoji:"📐", titulo:"Propriedades da Adição",
-    desc:"Regras que sempre funcionam",
-    grad:["#831843","#DB2777"], desbloqueado:false,
+    id:7, emoji:"⚖️", titulo:"Neutro e Oposto",
+    desc:"Zero não move. Oposto volta ao zero.",
+    sessoesNecessarias:2,
+    grad:["#831843","#DB2777"],
     revisao:[
       {perg:"3+(−7)=?",ops:["+10","+4","−4"],ok:2},
       {perg:"−2+(−4)=?",ops:["−6","+2","+6"],ok:0},
     ],
     slides:[
-      { titulo:"As 4 propriedades da adição",
+      { titulo:"Somar zero = não se mover 🫥",
         itens:[
-          {t:"prop",em:"🔄",nome:"Comutativa",     reg:"A ordem não muda o resultado", ex:"3+5 = 5+3 = 8",      dic:"🎮 Ganhar +3 vida depois +5, ou +5 depois +3 — o total é o mesmo!"},
-          {t:"prop",em:"👥",nome:"Associativa",    reg:"O agrupamento não muda",       ex:"(2+3)+4 = 2+(3+4)",  dic:"🎮 Pode juntar quem quiser primeiro — o total não muda!"},
-          {t:"prop",em:"🫥",nome:"Elemento Neutro",reg:"Somar zero não muda nada",     ex:"7+0 = 7",            dic:"🎮 +0 vida = você não se moveu na reta!"},
-          {t:"prop",em:"🪞",nome:"Elemento Oposto",reg:"Número + simétrico = zero",    ex:"5+(−5) = 0",         dic:"🎮 Anda +5 e depois −5 = volta para onde estava!"},
+          {t:"fala", v:"Quando você soma zero, o Sauron não sai do lugar."},
+          {t:"exemploAnm", expr:"−8 + 0", passos:["Começa no −8","Soma 0 → não anda","Fica no −8 ✅"],nl:{start:-8,end:-8}},
+          {t:"regra", v:"Qualquer número + 0 = o próprio número.\nO zero é o ELEMENTO NEUTRO."},
+        ]
+      },
+      { titulo:"Número + oposto = zero 🪞",
+        itens:[
+          {t:"fala", v:"Quando você soma um número com o simétrico dele, o resultado é sempre zero."},
+          {t:"exemploAnm", expr:"−6 + 6", passos:["Começa no −6","Soma +6 (oposto de −6)","Anda 6 para a direita","Chega no 0 ✅"],nl:{start:-6,end:0}},
+          {t:"regra", v:"Número + seu oposto = zero.\n🐕 O Sauron sempre volta para casa!"},
         ]
       },
     ],
     questoes:[
-      {ctx:"🔄 Comutativa:",perg:"Se 7+(−3)=4, quanto é (−3)+7?",ops:["−4","0","4","10"],ok:2,feed:"A ordem não muda! (−3)+7 = 7+(−3) = 4",nl:null},
-      {ctx:"🫥 Elemento neutro:",perg:"Quanto é −8+0?",ops:["+8","0","−8","1"],ok:2,feed:"Somar zero não muda nada! −8+0=−8.",nl:{hl:-8}},
-      {ctx:"🪞 Elemento oposto:",perg:"Quanto é −6+6?",ops:["12","−12","−6","0"],ok:3,feed:"+6 é o simétrico de −6. Número + seu oposto = zero!",nl:{start:-6,end:0}},
-      {ctx:"👥 Associativa:",perg:"(−2+5)+3 = −2+(5+3)?",ops:["Sim, sempre funciona","Não, os resultados diferem","Só com positivos","Depende dos sinais"],ok:0,feed:"Sim! O agrupamento não muda o resultado.",nl:null},
+      {ctx:"🫥 Elemento neutro:",perg:"−8 + 0 = ?",
+       ops:["+8","0","−8","1"],ok:2,feed:"Somar zero não muda nada! −8+0=−8.",nl:{hl:-8}},
+      {ctx:"🪞 Elemento oposto:",perg:"−6 + 6 = ?",
+       ops:["12","−12","−6","0"],ok:3,feed:"+6 é o oposto de −6. Número + oposto = zero!",nl:{start:-6,end:0}},
+      {ctx:"🎮 Você está em +5 e recebe −5 de dano.",perg:"+5 + (−5) = ?",
+       ops:["+10","0","−5","+5"],ok:1,feed:"+5+(−5)=0. Oposto! O Sauron voltou para o zero.",nl:{start:5,end:0}},
     ]
   },
   {
     id:8, emoji:"➖", titulo:"Subtração com Inteiros",
     desc:"Subtrair é adicionar o oposto",
-    grad:["#9A3412","#F97316"], desbloqueado:false,
+    sessoesNecessarias:3,
+    grad:["#9A3412","#F97316"],
     revisao:[
-      {perg:"−4+4=?",ops:["8","−8","0"],ok:2},
-      {perg:"Elemento neutro da adição:",ops:["1","0","−1"],ok:1},
+      {perg:"−4 + 4 = ?",ops:["8","−8","0"],ok:2},
+      {perg:"Qualquer número + 0 = ?",ops:["0","1","o próprio número"],ok:2},
     ],
     slides:[
       { titulo:"O segredo da subtração 🔑",
         itens:[
-          {t:"fala", v:"Subtrair um número é a mesma coisa que ADICIONAR o seu simétrico!"},
+          {t:"fala", v:"Subtrair um número = adicionar o oposto dele."},
           {t:"bigRegra", v:"a − b  =  a + (−b)"},
           {t:"subEx", ss:[
-            {o:"5−3",  tr:"5+(−3)", r:2,  nl:{start:5,end:2}},
-            {o:"3−8",  tr:"3+(−8)", r:-5, nl:{start:3,end:-5}},
-            {o:"−2−3", tr:"−2+(−3)",r:-5, nl:{start:-2,end:-5}},
+            {o:"5−3",   tr:"5+(−3)",  r:2,  nl:{start:5,end:2}},
+            {o:"3−8",   tr:"3+(−8)",  r:-5, nl:{start:3,end:-5}},
+            {o:"−2−3",  tr:"−2+(−3)", r:-5, nl:{start:-2,end:-5}},
           ]},
-          {t:"dica", v:"🐕 Subtração = troca o sinal do segundo e soma!\nDepois é só caminhar na reta."},
+          {t:"dica", v:"🐕 Troca o sinal do segundo e soma!\nDepois é só caminhar na reta."},
         ]
       },
       { titulo:"Subtrair um NEGATIVO ⚠️",
         itens:[
-          {t:"fala", v:"Este é o caso mais especial. Devagar!"},
-          {t:"exemploAnm", expr:"5 − (−3)", passos:["Vejo: 5−(−3)","Troco: 5+(+3)  ← oposto de −3 é +3","Somo: 5+3=8","Resultado: 8 ✅"],nl:{start:5,end:8}},
+          {t:"fala", v:"Este é o caso mais especial. Devagar:"},
+          {t:"exemploAnm", expr:"5 − (−3)", passos:["Vejo: 5−(−3)","Troco: 5+(+3)  ← oposto de −3 é +3","Somo: 5+3=8","Chegou no 8 ✅"],nl:{start:5,end:8}},
           {t:"aviso", v:"Menos com menos = mais!\n5−(−3) = 5+3 = 8\n→ Foi para a DIREITA!"},
         ]
       },
     ],
     questoes:[
-      {ctx:"➖ Transforme em adição:",perg:"8−5 = 8 + ?",ops:["8+5","8+(−5)","8+0","8+(−8)"],ok:1,feed:"Subtrair 5 = adicionar −5. 8−5=8+(−5)=3",nl:{start:8,end:3}},
-      {ctx:"💸 Você devia R$3 e gastou mais R$7.",perg:"Qual é seu saldo? (−3−7=?)",ops:["+10","+4","−4","−10"],ok:3,feed:"−3−7=−3+(−7)=−10. Ficou ainda mais negativo!",nl:{start:-3,end:-6}},
-      {ctx:"🎮 Você estava em −5 e subtraiu −3.",perg:"−5−(−3)=?",ops:["−8","−2","2","8"],ok:1,feed:"−5−(−3)=−5+3=−2. Subtrair negativo virou soma!",nl:{start:-5,end:-2}},
-      {ctx:"🎮 Posição 5, subtrai −3.",perg:"5−(−3)=?",ops:["2","−2","8","−8"],ok:2,feed:"5−(−3)=5+3=8! Menos com menos = mais. Foi para a DIREITA!",nl:{start:5,end:8}},
+      {ctx:"➖ Transforme em adição:",perg:"8−5 = 8 + ?",
+       ops:["8+5","8+(−5)","8+0","8+(−8)"],ok:1,feed:"Subtrair 5 = adicionar −5. 8+(−5)=3",nl:{start:8,end:3}},
+      {ctx:"💸 Devia R$3 e gastou mais R$7.",perg:"−3−7=?",
+       ops:["+10","+4","−4","−10"],ok:3,feed:"−3−7=−3+(−7)=−10. Ficou ainda mais negativo!",nl:null},
+      {ctx:"🎮 Estava em −5 e subtraiu −3.",perg:"−5−(−3)=?",
+       ops:["−8","−2","2","8"],ok:1,feed:"−5−(−3)=−5+3=−2. Subtrair negativo virou soma!",nl:{start:-5,end:-2}},
+      {ctx:"🎮 Posição 5, subtrai −3.",perg:"5−(−3)=?",
+       ops:["2","−2","8","−8"],ok:2,feed:"5−(−3)=5+3=8! Menos com menos = mais. Foi para a DIREITA!",nl:{start:5,end:8}},
     ]
   },
 ];
 
-// Reta numérica animada — canal visuoespacial do Pedro (99,9° percentil)
+// Reta numérica animada — canal visuoespacial do Pedro
 function Reta({hl=null,start=null,end=null,dist=false,animar=false}){
   const MIN=-7,MAX=7,nums=[];
   for(let i=MIN;i<=MAX;i++) nums.push(i);
@@ -317,7 +362,7 @@ function Reta({hl=null,start=null,end=null,dist=false,animar=false}){
   return(
     <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"16px",padding:"10px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
       <div style={{position:"relative",width:"100%",padding:"38px 6px 18px",userSelect:"none"}}>
-        {start!=null&&end!=null&&<div style={{position:"absolute",height:"7px",borderRadius:"4px",background:end>=start?"rgba(52,211,153,0.35)":"rgba(248,113,113,0.35)",left:`${Math.min(pct(start),pct(end))}%`,width:`${Math.abs(pct(end)-pct(start))}%`,top:"27px"}}/>}
+        {start!=null&&end!=null&&<div style={{position:"absolute",height:"7px",borderRadius:"4px",background:end>=start?"rgba(52,211,153,0.35)":"rgba(248,113,113,0.35)",left:`${Math.min(pct(Math.max(start,MIN)),pct(Math.max(end,MIN)))}%`,width:`${Math.abs(pct(Math.min(end,MAX))-pct(Math.min(start,MAX)))}%`,top:"27px"}}/>}
         {dist&&hl!=null&&hl!==0&&<>
           <div style={{position:"absolute",height:"2px",background:"#FBBF24",opacity:.8,left:`${Math.min(pct(0),pct(hl))}%`,width:`${Math.abs(pct(hl)-pct(0))}%`,top:"18px"}}/>
           <div style={{position:"absolute",color:"#FBBF24",fontWeight:900,fontSize:"14px",left:`${(pct(0)+pct(hl))/2}%`,top:"2px",transform:"translateX(-50%)",background:"rgba(0,0,0,0.6)",padding:"1px 6px",borderRadius:"6px"}}>{Math.abs(hl)} passos</div>
@@ -345,7 +390,7 @@ function Item({item}){
     if(item.t==="exemploAnm"||item.t==="reta"){const t=setTimeout(()=>setAnm(true),600);return()=>clearTimeout(t);}
   },[item.t]);
   const c={background:"rgba(255,255,255,0.07)",borderRadius:"18px",padding:"16px 18px",border:"1px solid rgba(255,255,255,0.08)"};
-  if(item.t==="fala") return <p className="up" style={{color:"#E5E7EB",fontSize:"20px",fontWeight:700,lineHeight:1.6}}>{item.v}</p>;
+  if(item.t==="fala") return <p className="up" style={{color:"#E5E7EB",fontSize:"20px",fontWeight:700,lineHeight:1.6,whiteSpace:"pre-line"}}>{item.v}</p>;
   if(item.t==="dica") return <div style={{background:"rgba(120,80,0,0.3)",border:"2px solid rgba(251,191,36,0.5)",borderRadius:"18px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#FDE68A",fontSize:"19px",fontWeight:800,margin:i?"6px 0 0":0}}>{l}</p>)}</div>;
   if(item.t==="aviso") return <div style={{background:"rgba(120,40,0,0.3)",border:"2px solid rgba(251,146,60,0.5)",borderRadius:"18px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#FED7AA",fontSize:"19px",fontWeight:700,margin:i?"6px 0 0":0}}>{l}</p>)}</div>;
   if(item.t==="regra") return <div style={{background:"rgba(60,20,100,0.35)",border:"2px solid rgba(167,139,250,0.5)",borderRadius:"18px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#DDD6FE",fontSize:"19px",fontWeight:800,margin:i?"6px 0 0":0}}>{l}</p>)}</div>;
@@ -361,13 +406,17 @@ function Item({item}){
   if(item.t==="direcao") return <div className="up" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>{item.ds.map((r,i)=><div key={i} style={{borderRadius:"18px",padding:"16px",textAlign:"center",border:`2px solid ${i===0?"rgba(52,211,153,0.4)":"rgba(248,113,113,0.4)"}`,background:i===0?"rgba(0,60,30,0.3)":"rgba(80,0,0,0.3)"}}><div style={{fontSize:"36px"}}>{r.em}</div><p style={{color:i===0?"#6EE7B7":"#FCA5A5",fontSize:"16px",fontWeight:800,margin:"8px 0 2px"}}>{r.sinal}</p><p style={{color:"#fff",fontSize:"20px",fontWeight:900,margin:0}}>{r.dir}</p></div>)}</div>;
   if(item.t==="exemploAnm") return <div style={c} className="up"><p style={{color:"#FBBF24",fontWeight:900,textAlign:"center",fontSize:"25px",margin:"0 0 14px",fontFamily:"monospace"}}>{item.expr}</p><div style={{display:"flex",flexDirection:"column",gap:"8px",marginBottom:"14px"}}>{item.passos.map((s,i)=><div key={i} style={{display:"flex",gap:"12px",alignItems:"flex-start"}}><span style={{color:"rgba(107,114,128,1)",fontSize:"16px",marginTop:"2px",minWidth:"22px",fontWeight:700}}>{i+1}.</span><span style={{color:"#E5E7EB",fontSize:"19px",fontWeight:700}}>{s}</span></div>)}</div>{item.nl&&<Reta start={item.nl.start} end={item.nl.end} animar={anm}/>}</div>;
   if(item.t==="regraBox") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.rs.map((r,i)=><div key={i} style={c}><p style={{color:"#FBBF24",fontSize:"19px",fontWeight:900,margin:"0 0 4px"}}>{r.tit}</p><p style={{color:"#E5E7EB",fontSize:"18px",fontWeight:700,margin:"0 0 6px"}}>{r.reg}</p><p style={{color:"#6EE7B7",fontSize:"18px",fontFamily:"monospace",fontWeight:800,margin:0,whiteSpace:"pre-line"}}>{r.ex}</p></div>)}</div>;
-  if(item.t==="prop") return <div style={{...c,marginBottom:"8px"}} className="up"><div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}><span style={{fontSize:"28px"}}>{item.em}</span><span style={{color:"#FBBF24",fontSize:"20px",fontWeight:900}}>{item.nome}</span></div><p style={{color:"#E5E7EB",fontSize:"19px",fontWeight:700,margin:"0 0 4px"}}>{item.reg}</p><p style={{color:"#6EE7B7",fontSize:"18px",fontFamily:"monospace",fontWeight:800,margin:"0 0 6px"}}>{item.ex}</p><p style={{color:"rgba(156,163,175,1)",fontSize:"17px",fontWeight:600,margin:0}}>{item.dic}</p></div>;
   if(item.t==="subEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ss.map((x,i)=><div key={i} style={c}><p style={{fontSize:"19px",fontWeight:900,margin:"0 0 6px"}}><span style={{color:"#FBBF24"}}>{x.o}</span><span style={{color:"rgba(107,114,128,1)"}}> = </span><span style={{color:"#93C5FD"}}>{x.tr}</span><span style={{color:"rgba(107,114,128,1)"}}> = </span><span style={{color:"#6EE7B7",fontWeight:900}}>{x.r}</span></p><Reta start={x.nl.start} end={x.nl.end}/></div>)}</div>;
   return null;
 }
 
 export default function App(){
-  const [blocos,setBlocos]=useState(BLOCOS);
+  // Persistência de sessões — laudo: critério de avanço = estabilização, não "entendeu uma vez"
+  const [storage,setStorage]=useState(()=>{
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||{blocos:{}}; }
+    catch{ return {blocos:{}}; }
+  });
+
   const [tela,setTela]=useState("home");
   const [bi,setBi]=useState(0);
   const [fase,setFase]=useState("slides");
@@ -376,45 +425,102 @@ export default function App(){
   const [qi,setQi]=useState(0);
   const [sel,setSel]=useState(null);
   const [tent,setTent]=useState(0);
-  const [dica,setDica]=useState(false);
+  // retaVis: reta disponível ANTES do erro — laudo: suporte antecipado, não como punição
+  const [retaVis,setRetaVis]=useState(false);
   const [rev,setRev]=useState(false);
   const [humor,setHumor]=useState("n");
+  // log detalhado por questão — laudo: relatório rico para mediação externa da mãe
   const [log,setLog]=useState([]);
 
-  const B=blocos[bi]||blocos[0];
-  const rst=()=>{setSel(null);setTent(0);setDica(false);setRev(false);};
+  const B=BLOCOS[bi]||BLOCOS[0];
+
+  // Quantas sessões o Pedro completou neste bloco
+  const getSessoes=id=>storage.blocos[id]?.sessoes||0;
+
+  // Bloco desbloqueado quando o anterior tiver sessões suficientes
+  const blocoDesbloqueado=i=>{
+    if(i===0) return true;
+    const prev=BLOCOS[i-1];
+    return getSessoes(prev.id)>=prev.sessoesNecessarias;
+  };
+
+  // Salva sessão concluída no localStorage
+  const salvarSessao=id=>{
+    const n=(storage.blocos[id]?.sessoes||0)+1;
+    const novo={...storage,blocos:{...storage.blocos,[id]:{sessoes:n,data:new Date().toLocaleDateString('pt-BR')}}};
+    setStorage(novo);
+    try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(novo)); }catch{}
+    return n;
+  };
+
+  const rst=()=>{setSel(null);setTent(0);setRetaVis(false);setRev(false);};
 
   const avan=()=>{
     setHumor("n");rst();
     if(fase==="rev"){
-      if(B.revisao&&ri<B.revisao.length-1)setRi(r=>r+1);
-      else{setFase("slides");setSi(0);}
+      if(B.revisao&&ri<B.revisao.length-1) setRi(r=>r+1);
+      else{ setFase("slides");setSi(0); }
     }else if(fase==="slides"){
-      if(si<B.slides.length-1)setSi(s=>s+1);
-      else{setFase("qs");setQi(0);}
+      if(si<B.slides.length-1) setSi(s=>s+1);
+      else{ setFase("qs");setQi(0); }
     }else{
-      if(qi<B.questoes.length-1)setQi(q=>q+1);
-      else{setBlocos(p=>p.map((b,idx)=>idx===bi+1?{...b,desbloqueado:true}:b));setTela("fim");}
+      if(qi<B.questoes.length-1) setQi(q=>q+1);
+      else{
+        salvarSessao(B.id);
+        setTela("sessao");
+      }
     }
   };
 
-  const iniciar=i=>{setBi(i);setTela("bloco");rst();setRi(0);setSi(0);setQi(0);setHumor("n");setLog([]);setFase(blocos[i].revisao?"rev":"slides");};
-
-  const pick=i=>{
-    if(sel!=null||rev)return;
-    const q=B.questoes[qi];const t=tent+1;setTent(t);setSel(i);
-    // Erro nunca aparece como "errado" — laudo: medo de errar, perfeccionismo 91,67%
-    if(i===q.ok){setHumor("f");setLog(l=>[...l,{id:qi,r:t===1?"ok":"dc"}]);}
-    else{setHumor("c");if(t>=2){setRev(true);setLog(l=>[...l,{id:qi,r:"rv"}]);}}
+  const iniciar=i=>{
+    setBi(i);setTela("bloco");rst();setRi(0);setSi(0);setQi(0);setHumor("n");setLog([]);
+    setFase(BLOCOS[i].revisao?"rev":"slides");
   };
 
+  const pick=i=>{
+    if(sel!=null||rev) return;
+    const q=B.questoes[qi];
+    const t=tent+1;
+    setTent(t);
+    setSel(i);
+    if(i===q.ok){
+      setHumor("f");
+      // Rastreia se usou reta como apoio — laudo: não conta como erro, só informa a mãe
+      const res=t===1?"ok":retaVis?"com_reta":"tentou";
+      setLog(l=>[...l,{qi,ctx:q.ctx,perg:q.perg,res}]);
+    }else{
+      setHumor("c");
+      if(t>=2){
+        setRev(true);
+        setLog(l=>[...l,{qi,ctx:q.ctx,perg:q.perg,res:"revelou"}]);
+      }
+    }
+  };
+
+  // Relatório rico — laudo: mãe precisa saber qual questão específica precisou de mediação
   const wa=tipo=>{
     let msg="";
     if(tipo==="rel"){
-      const tot=B.questoes.length,ok=log.filter(x=>x.r==="ok").length,dc=log.filter(x=>x.r==="dc").length,rv=log.filter(x=>x.r==="rv").length;
-      msg=`📊 *Relatório do Pedro*\n*Bloco ${B.id}: ${B.emoji} ${B.titulo}*\n\n✅ Acertou direto: ${ok}/${tot}\n💡 Precisou de dica: ${dc}/${tot}\n📖 Precisou ver a resposta: ${rv}/${tot}\n\n${rv>0?`💬 Revisar juntos: *${B.titulo}*`:"🎉 Ótimo desempenho!"}`;
+      const sessoes=getSessoes(B.id);
+      const ok=log.filter(x=>x.res==="ok").length;
+      const dc=log.filter(x=>x.res==="com_reta"||x.res==="tentou").length;
+      const rv=log.filter(x=>x.res==="revelou").length;
+      const det=log.map((x,idx)=>{
+        const ic=x.res==="ok"?"✅":x.res==="revelou"?"⚠️":"💡";
+        return `${ic} Q${idx+1}: ${x.ctx}`;
+      }).join("\n");
+      const revisar=log.filter(x=>x.res==="revelou");
+      let rec="";
+      if(rv===0) rec="🌟 Excelente! Pode avançar normalmente.";
+      else if(rv===1) rec=`💬 Revisar oralmente com Pedro: Q${log.findIndex(x=>x.res==="revelou")+1} — ${revisar[0]?.ctx}`;
+      else rec=`🔁 Recomendo repetir este bloco antes de avançar (${rv} questões precisaram da resposta)`;
+      msg=`📊 *Pedro — ${B.emoji} ${B.titulo}*\n`+
+          `Sessão ${sessoes} de ${B.sessoesNecessarias} | ${storage.blocos[B.id]?.data||"hoje"}\n\n`+
+          `${det}\n\n`+
+          `✅ Direto: ${ok}   💡 Com apoio: ${dc}   ⚠️ Revelou: ${rv}\n\n`+
+          rec;
     }else{
-      msg=`🐕 Oi mãe! Estou com dúvida no bloco *${B.emoji} ${B.titulo}*.\nPode me ajudar? 😊`;
+      msg=`🐕 Oi mãe! Estou com dúvida no *${B.emoji} ${B.titulo}*. Pode me ajudar? 😊`;
     }
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank");
   };
@@ -422,7 +528,8 @@ export default function App(){
   const dog=humor==="f"?"bn":humor==="c"?"sh":"";
   const g0=B.grad[0],g1=B.grad[1];
   const btnP={width:"100%",padding:"20px",borderRadius:"22px",border:"none",cursor:"pointer",background:`linear-gradient(135deg,${g0},${g1})`,color:"#fff",fontSize:"20px",fontWeight:900,boxShadow:`0 6px 24px ${g0}66`};
-  // Botão da mãe — grande, quente, sempre visível. Laudo: raramente pede ajuda espontaneamente
+
+  // Botão da mãe — grande, quente, sempre visível — laudo: raramente pede ajuda espontaneamente
   const BtnMae=({tipo="dv"})=>(
     <button onClick={()=>wa(tipo==="rel"?"rel":"dv")} className="gl"
       style={{width:"100%",padding:"20px",borderRadius:"22px",border:"none",cursor:"pointer",background:"linear-gradient(135deg,#B45309,#F59E0B)",color:"#1C1917",fontSize:"20px",fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",gap:"12px",boxShadow:"0 6px 26px rgba(245,158,11,0.45)"}}>
@@ -430,6 +537,7 @@ export default function App(){
     </button>
   );
 
+  // ─── TELA INICIAL ────────────────────────────────────────────────────────────
   if(tela==="home") return(
     <><style>{css}</style>
     <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",paddingBottom:"50px"}}>
@@ -439,65 +547,172 @@ export default function App(){
         <p style={{color:"rgba(156,163,175,1)",fontSize:"19px",fontWeight:700,margin:0}}>O Sauron está aqui com você!</p>
       </div>
       <div style={{padding:"0 20px",display:"flex",flexDirection:"column",gap:"14px",maxWidth:"440px",margin:"0 auto"}}>
-        {blocos.map((b,i)=>(
-          <button key={b.id} onClick={()=>b.desbloqueado&&iniciar(i)}
-            style={{width:"100%",textAlign:"left",padding:"20px 22px",borderRadius:"24px",
-              border:b.desbloqueado?"none":"1px solid rgba(255,255,255,0.08)",
-              cursor:b.desbloqueado?"pointer":"not-allowed",
-              background:b.desbloqueado?`linear-gradient(135deg,${b.grad[0]},${b.grad[1]})`:"rgba(255,255,255,0.05)",
-              boxShadow:b.desbloqueado?`0 6px 24px ${b.grad[0]}44`:"none",
-              opacity:b.desbloqueado?1:0.45}}>
-            <div style={{display:"flex",alignItems:"center",gap:"14px"}}>
-              <span style={{fontSize:"36px"}}>{b.desbloqueado?b.emoji:"🔒"}</span>
-              <div style={{flex:1}}>
-                <p style={{fontWeight:900,color:b.desbloqueado?"#fff":"rgba(156,163,175,0.5)",fontSize:"19px",margin:0}}>{b.titulo}</p>
-                <p style={{color:b.desbloqueado?"rgba(255,255,255,0.65)":"rgba(107,114,128,0.4)",fontSize:"17px",fontWeight:600,margin:"2px 0 0"}}>
-                  {b.desbloqueado?b.desc:"Complete o bloco anterior primeiro"}
-                </p>
+        {BLOCOS.map((b,i)=>{
+          const desbloqueado=blocoDesbloqueado(i);
+          const sessoes=getSessoes(b.id);
+          const dominado=sessoes>=b.sessoesNecessarias;
+          return(
+            <button key={b.id} onClick={()=>desbloqueado&&iniciar(i)}
+              style={{width:"100%",textAlign:"left",padding:"20px 22px",borderRadius:"24px",
+                border:desbloqueado?"none":"1px solid rgba(255,255,255,0.08)",
+                cursor:desbloqueado?"pointer":"not-allowed",
+                background:desbloqueado?`linear-gradient(135deg,${b.grad[0]},${b.grad[1]})`:"rgba(255,255,255,0.05)",
+                boxShadow:desbloqueado?`0 6px 24px ${b.grad[0]}44`:"none",
+                opacity:desbloqueado?1:0.45}}>
+              <div style={{display:"flex",alignItems:"center",gap:"14px"}}>
+                <span style={{fontSize:"36px"}}>{desbloqueado?b.emoji:"🔒"}</span>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
+                    <p style={{fontWeight:900,color:desbloqueado?"#fff":"rgba(156,163,175,0.5)",fontSize:"19px",margin:0}}>{b.titulo}</p>
+                    {dominado&&<span style={{background:"rgba(52,211,153,0.2)",color:"#6EE7B7",fontSize:"12px",fontWeight:900,padding:"2px 8px",borderRadius:"8px"}}>✅ dominado</span>}
+                  </div>
+                  <p style={{color:desbloqueado?"rgba(255,255,255,0.65)":"rgba(107,114,128,0.4)",fontSize:"17px",fontWeight:600,margin:"2px 0 0"}}>
+                    {desbloqueado?b.desc:"Complete o bloco anterior primeiro"}
+                  </p>
+                  {/* Barra de progresso de sessões — laudo: Pedro precisa ver onde está */}
+                  {desbloqueado&&!dominado&&(
+                    <div style={{marginTop:"10px"}}>
+                      <div style={{display:"flex",gap:"5px",marginBottom:"4px"}}>
+                        {Array.from({length:b.sessoesNecessarias},(_,idx)=>(
+                          <div key={idx} style={{flex:1,height:"5px",borderRadius:"3px",
+                            background:idx<sessoes?"rgba(255,255,255,0.85)":"rgba(255,255,255,0.2)"}}/>
+                        ))}
+                      </div>
+                      <p style={{color:"rgba(255,255,255,0.5)",fontSize:"14px",fontWeight:700,margin:0}}>
+                        {sessoes===0?`${b.sessoesNecessarias} sessões para dominar`:`${sessoes} de ${b.sessoesNecessarias} sessões`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <span style={{color:"rgba(255,255,255,0.4)",fontSize:"28px"}}>{desbloqueado?"›":"🔒"}</span>
               </div>
-              <span style={{color:b.desbloqueado?"rgba(255,255,255,0.4)":"rgba(107,114,128,0.3)",fontSize:"28px"}}>{b.desbloqueado?"›":"🔒"}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div></>
+  );
+
+  // ─── TELA DE SESSÃO CONCLUÍDA ────────────────────────────────────────────────
+  // Nova tela — laudo: Pedro precisa de feedback imediato, mãe precisa de relatório detalhado
+  if(tela==="sessao"){
+    const sessoesFeitasAgora=getSessoes(B.id);
+    const dominado=sessoesFeitasAgora>=B.sessoesNecessarias;
+    const ok=log.filter(x=>x.res==="ok").length;
+    const dc=log.filter(x=>x.res==="com_reta"||x.res==="tentou").length;
+    const rv=log.filter(x=>x.res==="revelou").length;
+    const precisaRepetir=rv>=2;
+    const proximoIndex=bi+1;
+    const temProximo=proximoIndex<BLOCOS.length;
+    return(
+      <><style>{css}</style>
+      <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 24px 50px",gap:"20px"}}>
+        <div style={{fontSize:"80px"}} className="bn">🐕</div>
+
+        <div style={{textAlign:"center"}}>
+          <h2 style={{fontSize:"28px",fontWeight:900,color:"#FBBF24",margin:"0 0 8px"}}>
+            {dominado&&!precisaRepetir?"Bloco dominado! 💪":"Sessão concluída!"}
+          </h2>
+          <p style={{color:"rgba(209,213,219,1)",fontSize:"18px",fontWeight:700,margin:0}}>
+            {B.emoji} {B.titulo}
+          </p>
+        </div>
+
+        {/* Barra de progresso de sessões */}
+        <div style={{width:"100%",maxWidth:"400px"}}>
+          <div style={{display:"flex",gap:"6px",marginBottom:"8px"}}>
+            {Array.from({length:B.sessoesNecessarias},(_,idx)=>(
+              <div key={idx} style={{flex:1,height:"10px",borderRadius:"5px",
+                background:idx<sessoesFeitasAgora?`linear-gradient(90deg,${g0},${g1})`:"rgba(255,255,255,0.15)"}}/>
+            ))}
+          </div>
+          <p style={{color:"rgba(156,163,175,1)",textAlign:"center",fontSize:"15px",fontWeight:700,margin:0}}>
+            {dominado?`${B.sessoesNecessarias} sessões concluídas ✅`:`Sessão ${sessoesFeitasAgora} de ${B.sessoesNecessarias}`}
+          </p>
+        </div>
+
+        {/* Resumo numérico */}
+        <div style={{width:"100%",maxWidth:"400px",background:"rgba(255,255,255,0.05)",borderRadius:"20px",padding:"20px",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <p style={{color:"rgba(156,163,175,1)",fontSize:"15px",fontWeight:800,margin:"0 0 14px",textTransform:"uppercase",letterSpacing:".5px"}}>Resultado desta sessão</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",textAlign:"center"}}>
+            <div style={{background:"rgba(52,211,153,0.1)",borderRadius:"14px",padding:"12px 6px"}}>
+              <div style={{fontSize:"32px",fontWeight:900,color:"#6EE7B7"}}>{ok}</div>
+              <div style={{fontSize:"13px",color:"rgba(156,163,175,1)",fontWeight:700,marginTop:"4px"}}>✅ Direto</div>
             </div>
+            <div style={{background:"rgba(147,197,253,0.1)",borderRadius:"14px",padding:"12px 6px"}}>
+              <div style={{fontSize:"32px",fontWeight:900,color:"#93C5FD"}}>{dc}</div>
+              <div style={{fontSize:"13px",color:"rgba(156,163,175,1)",fontWeight:700,marginTop:"4px"}}>💡 Com apoio</div>
+            </div>
+            <div style={{background:"rgba(252,165,165,0.1)",borderRadius:"14px",padding:"12px 6px"}}>
+              <div style={{fontSize:"32px",fontWeight:900,color:"#FCA5A5"}}>{rv}</div>
+              <div style={{fontSize:"13px",color:"rgba(156,163,175,1)",fontWeight:700,marginTop:"4px"}}>⚠️ Revelou</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recomendação — laudo: Pedro não vê erro; mãe recebe via WhatsApp */}
+        {precisaRepetir&&(
+          <div style={{width:"100%",maxWidth:"400px",background:"rgba(120,80,0,0.3)",border:"2px solid rgba(251,191,36,0.5)",borderRadius:"18px",padding:"16px 18px"}}>
+            <p style={{color:"#FDE68A",fontSize:"18px",fontWeight:800,margin:"0 0 4px"}}>🐕 Que tal repetir mais uma vez?</p>
+            <p style={{color:"rgba(253,230,138,0.7)",fontSize:"16px",fontWeight:600,margin:0}}>Repetir ajuda a fixar melhor.</p>
+          </div>
+        )}
+
+        {dominado&&!precisaRepetir&&temProximo&&(
+          <div style={{width:"100%",maxWidth:"400px",background:"rgba(0,60,30,0.3)",border:"2px solid rgba(52,211,153,0.5)",borderRadius:"18px",padding:"16px 18px",textAlign:"center"}}>
+            <p style={{color:"#6EE7B7",fontSize:"18px",fontWeight:800,margin:0}}>🔓 {BLOCOS[proximoIndex].emoji} {BLOCOS[proximoIndex].titulo} desbloqueado!</p>
+          </div>
+        )}
+
+        <div style={{width:"100%",maxWidth:"400px",display:"flex",flexDirection:"column",gap:"12px"}}>
+          {/* Botão da mãe com relatório detalhado — laudo: mediação externa essencial */}
+          <BtnMae tipo="rel"/>
+          <button onClick={()=>wa("dv")}
+            style={{width:"100%",padding:"18px",borderRadius:"22px",border:"2px solid rgba(245,158,11,0.4)",background:"transparent",color:"#F59E0B",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
+            🐕 Tenho uma dúvida
           </button>
-        ))}
-      </div>
-    </div></>
-  );
+          <button onClick={()=>iniciar(bi)}
+            style={{width:"100%",padding:"18px",borderRadius:"22px",border:"2px solid rgba(255,255,255,0.12)",background:"transparent",color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
+            🔄 Repetir este bloco
+          </button>
+          {dominado&&temProximo&&!precisaRepetir&&(
+            <button onClick={()=>iniciar(proximoIndex)} style={btnP}>
+              Próximo bloco →
+            </button>
+          )}
+          <button onClick={()=>setTela("home")}
+            style={{width:"100%",padding:"18px",borderRadius:"22px",border:"none",background:"rgba(255,255,255,0.07)",color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
+            🏠 Início
+          </button>
+        </div>
+      </div></>
+    );
+  }
 
-  if(tela==="fim") return(
-    <><style>{css}</style>
-    <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px"}}>
-      <div style={{fontSize:"88px",marginBottom:"16px"}} className="bn">🐕</div>
-      <h2 style={{fontSize:"30px",fontWeight:900,color:"#FBBF24",margin:"0 0 10px",textAlign:"center"}}>Bloco concluído!</h2>
-      <p style={{color:"rgba(209,213,219,1)",textAlign:"center",fontSize:"19px",fontWeight:700,marginBottom:"10px",maxWidth:"300px",lineHeight:1.5}}>
-        Você foi lá e fez. Isso é o que importa! 💪
-      </p>
-      {bi<blocos.length-1&&<p style={{color:"#6EE7B7",fontSize:"18px",fontWeight:800,margin:"0 0 28px"}}>🔓 Bloco {bi+2} desbloqueado!</p>}
-      <div style={{width:"100%",maxWidth:"400px",display:"flex",flexDirection:"column",gap:"14px"}}>
-        <BtnMae tipo="rel"/>
-        <button onClick={()=>wa("dv")} style={{width:"100%",padding:"18px",borderRadius:"22px",border:"2px solid rgba(245,158,11,0.5)",background:"transparent",color:"#F59E0B",fontSize:"19px",fontWeight:900,cursor:"pointer"}}>
-          🐕 Tenho uma dúvida — chamar a mãe
-        </button>
-        <button onClick={()=>setTela("home")} style={{width:"100%",padding:"18px",borderRadius:"22px",border:"none",background:"rgba(255,255,255,0.07)",color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
-          🏠 Voltar para o início
-        </button>
-      </div>
-    </div></>
-  );
-
+  // ─── TELA DE BLOCO ────────────────────────────────────────────────────────────
   const q=fase==="qs"?B.questoes[qi]:null;
   const rv2=(fase==="rev"&&B.revisao)?B.revisao[ri]:null;
   const sl=fase==="slides"?B.slides[si]:null;
-  const ok=sel!=null&&q&&sel===q.ok;
+  const acertou=sel!=null&&q&&sel===q.ok;
+  const sessaoAtual=getSessoes(B.id)+1;
 
   return(
     <><style>{css}</style>
     <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",paddingBottom:"36px"}}>
+
+      {/* HEADER */}
       <div style={{padding:"18px 20px 22px",background:`linear-gradient(135deg,${g0},${g1})`}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"}}>
           <button onClick={()=>setTela("home")} style={{color:"rgba(255,255,255,0.8)",fontSize:"18px",fontWeight:800,background:"none",border:"none",cursor:"pointer"}}>← Início</button>
-          <p style={{color:"#fff",fontWeight:900,fontSize:"18px",margin:0}}>{B.emoji} {B.titulo}</p>
-          {/* Botão da mãe no header — sempre visível, laudo: raramente pede ajuda */}
-          <button onClick={()=>wa("dv")} title="Estou com dúvida — chamar a mãe"
+          <div style={{textAlign:"center"}}>
+            <p style={{color:"#fff",fontWeight:900,fontSize:"17px",margin:0}}>{B.emoji} {B.titulo}</p>
+            {/* Indicador de sessão — laudo: Pedro sabe em que sessão está */}
+            <p style={{color:"rgba(255,255,255,0.7)",fontSize:"13px",fontWeight:700,margin:"2px 0 0"}}>
+              Sessão {Math.min(sessaoAtual,B.sessoesNecessarias)} de {B.sessoesNecessarias}
+            </p>
+          </div>
+          {/* Botão da mãe no header — sempre visível — laudo: raramente pede ajuda */}
+          <button onClick={()=>wa("dv")}
             style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:"50%",width:"48px",height:"48px",fontSize:"22px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>❤️</button>
         </div>
         {fase==="qs"&&(
@@ -517,6 +732,7 @@ export default function App(){
           {fase==="qs"&&`✏️ Praticando — questão ${qi+1} de ${B.questoes.length}`}
         </p>
 
+        {/* REVISÃO */}
         {fase==="rev"&&rv2&&(
           <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
             <div style={{background:"rgba(37,99,235,0.2)",border:"2px solid rgba(59,130,246,0.4)",borderRadius:"22px",padding:"20px 22px"}}>
@@ -534,6 +750,7 @@ export default function App(){
           </div>
         )}
 
+        {/* SLIDES */}
         {fase==="slides"&&sl&&(
           <>
             <h2 style={{fontSize:"23px",fontWeight:900,color:"#FBBF24",margin:0,lineHeight:1.3}}>{sl.titulo}</h2>
@@ -544,6 +761,7 @@ export default function App(){
           </>
         )}
 
+        {/* QUESTÕES */}
         {fase==="qs"&&q&&(
           <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
             <div style={{background:"rgba(255,255,255,0.07)",borderRadius:"22px",padding:"20px 22px",border:"1px solid rgba(255,255,255,0.08)"}}>
@@ -551,48 +769,77 @@ export default function App(){
               <p style={{color:"#fff",fontSize:"22px",fontWeight:900,margin:0,lineHeight:1.4}}>{q.perg}</p>
             </div>
 
-            {/* Reta aparece como suporte, nunca como punição — laudo: medo de errar */}
-            {q.nl&&(dica||rev)&&(
+            {/* RETA PROATIVA — disponível ANTES do erro — laudo: redução de carga inibitória */}
+            {q.nl&&!retaVis&&sel===null&&(
+              <button onClick={()=>setRetaVis(true)}
+                style={{background:"rgba(255,255,255,0.04)",border:"1px dashed rgba(255,255,255,0.2)",borderRadius:"16px",padding:"13px 18px",color:"rgba(156,163,175,0.85)",fontSize:"17px",fontWeight:700,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:"10px"}}>
+                <span style={{fontSize:"22px"}}>🐕</span>
+                <span>Ver na reta numérica</span>
+              </button>
+            )}
+
+            {/* Reta visível */}
+            {q.nl&&(retaVis||rev)&&(
               <div style={{background:"rgba(255,255,255,0.07)",borderRadius:"20px",padding:"14px 18px",border:"2px solid rgba(251,191,36,0.4)"}} className="pop">
                 <p style={{color:"#FBBF24",fontSize:"18px",fontWeight:800,margin:"0 0 6px"}}>🐕 O Sauron mostra na reta:</p>
                 <Reta hl={q.nl.hl??null} start={q.nl.start??null} end={q.nl.end??null} dist={q.nl.dist??false} animar/>
               </div>
             )}
 
+            {/* Opções de resposta */}
             <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
               {q.ops.map((o,i)=>{
                 let bg="rgba(255,255,255,0.07)",br="1px solid rgba(255,255,255,0.09)",fc="#E5E7EB";
-                if(sel===i&&ok){bg="rgba(0,80,40,0.55)";br="2px solid #34D399";fc="#fff";}
-                else if(sel===i&&!ok){bg="rgba(80,0,0,0.45)";br="1px solid rgba(248,113,113,0.5)";fc="#fff";}
+                if(sel===i&&acertou){bg="rgba(0,80,40,0.55)";br="2px solid #34D399";fc="#fff";}
+                else if(sel===i&&!acertou){bg="rgba(80,0,0,0.45)";br="1px solid rgba(248,113,113,0.5)";fc="#fff";}
                 else if(rev&&i===q.ok){bg="rgba(0,80,40,0.4)";br="2px solid rgba(52,211,153,0.5)";fc="#fff";}
-                return<button key={i} onClick={()=>pick(i)} style={{width:"100%",textAlign:"left",padding:"18px 20px",borderRadius:"18px",border:br,background:bg,color:fc,fontSize:"20px",fontWeight:700,cursor:"pointer",transition:"all 0.2s"}}>{o}</button>;
+                return <button key={i} onClick={()=>pick(i)} style={{width:"100%",textAlign:"left",padding:"18px 20px",borderRadius:"18px",border:br,background:bg,color:fc,fontSize:"20px",fontWeight:700,cursor:"pointer",transition:"all 0.2s"}}>{o}</button>;
               })}
             </div>
 
+            {/* Feedback — laudo: nunca "errado"; reta como suporte, nunca punição */}
             {sel!=null&&(
-              <div className="pop" style={{borderRadius:"22px",padding:"18px 20px",background:ok?"rgba(0,80,40,0.5)":"rgba(255,255,255,0.07)",border:ok?"2px solid rgba(52,211,153,0.5)":"1px solid rgba(255,255,255,0.09)"}}>
-                {ok?(
-                  <><p style={{color:"#6EE7B7",fontWeight:900,fontSize:"21px",margin:"0 0 8px"}}>🎯 Isso aí!</p>
-                  <p style={{color:"rgba(209,213,219,1)",fontSize:"18px",fontWeight:700,margin:0,lineHeight:1.5}}>{q.feed}</p></>
+              <div className="pop" style={{borderRadius:"22px",padding:"18px 20px",
+                background:acertou?"rgba(0,80,40,0.5)":"rgba(255,255,255,0.07)",
+                border:acertou?"2px solid rgba(52,211,153,0.5)":"1px solid rgba(255,255,255,0.09)"}}>
+                {acertou?(
+                  <>
+                    <p style={{color:"#6EE7B7",fontWeight:900,fontSize:"21px",margin:"0 0 8px"}}>🎯 Isso aí!</p>
+                    <p style={{color:"rgba(209,213,219,1)",fontSize:"18px",fontWeight:700,margin:0,lineHeight:1.5}}>{q.feed}</p>
+                  </>
                 ):rev?(
-                  // Quando revela: nunca "errado", sempre "veja como fica" — laudo: medo de errar
-                  <><p style={{color:"#FBBF24",fontWeight:900,fontSize:"20px",margin:"0 0 8px"}}>🐕 Veja como fica:</p>
-                  <p style={{color:"rgba(209,213,219,1)",fontSize:"18px",fontWeight:700,margin:0,lineHeight:1.5}}>{q.feed}</p></>
+                  // Nunca "errado" — laudo: medo de errar, perfeccionismo
+                  <>
+                    <p style={{color:"#FBBF24",fontWeight:900,fontSize:"20px",margin:"0 0 8px"}}>🐕 Veja como fica:</p>
+                    <p style={{color:"rgba(209,213,219,1)",fontSize:"18px",fontWeight:700,margin:0,lineHeight:1.5}}>{q.feed}</p>
+                  </>
                 ):(
-                  <><p style={{color:"#FBBF24",fontSize:"20px",fontWeight:800,margin:"0 0 12px"}}>🤔 Olha aqui e tenta de novo:</p>
-                  <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
-                    {q.nl&&!dica&&<button onClick={()=>setDica(true)} style={{color:"#93C5FD",fontSize:"18px",fontWeight:800,background:"none",border:"none",cursor:"pointer",textDecoration:"underline"}}>Ver na reta</button>}
-                    <button onClick={()=>setSel(null)} style={{background:"rgba(37,99,235,0.4)",color:"#fff",fontSize:"18px",fontWeight:800,padding:"10px 22px",borderRadius:"14px",border:"none",cursor:"pointer"}}>Tentar de novo</button>
-                  </div></>
+                  <>
+                    <p style={{color:"#FBBF24",fontSize:"20px",fontWeight:800,margin:"0 0 12px"}}>🤔 Tenta de novo:</p>
+                    <div style={{display:"flex",gap:"12px",flexWrap:"wrap"}}>
+                      {q.nl&&!retaVis&&(
+                        <button onClick={()=>setRetaVis(true)} style={{color:"#93C5FD",fontSize:"18px",fontWeight:800,background:"none",border:"none",cursor:"pointer",textDecoration:"underline"}}>
+                          Ver na reta
+                        </button>
+                      )}
+                      <button onClick={()=>setSel(null)} style={{background:"rgba(37,99,235,0.4)",color:"#fff",fontSize:"18px",fontWeight:800,padding:"10px 22px",borderRadius:"14px",border:"none",cursor:"pointer"}}>
+                        Tentar de novo
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             )}
 
-            {(ok||rev)&&<button onClick={avan} style={btnP}>{qi<B.questoes.length-1?"Próxima questão →":"Concluir bloco 🏁"}</button>}
+            {(acertou||rev)&&(
+              <button onClick={avan} style={btnP}>
+                {qi<B.questoes.length-1?"Próxima questão →":"Concluir sessão 🏁"}
+              </button>
+            )}
           </div>
         )}
 
-        {/* Botão da mãe — grande, sempre visível. Laudo: raramente pede ajuda espontaneamente */}
+        {/* Botão da mãe — grande, sempre visível — laudo: raramente pede ajuda */}
         {fase!=="rev"&&<BtnMae tipo="dv"/>}
       </div>
     </div></>
