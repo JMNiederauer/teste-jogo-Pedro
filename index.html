@@ -361,8 +361,17 @@ const BLOCOS = [
 
 // Reta numérica animada — canal visuoespacial do Pedro
 function Reta({hl=null,start=null,end=null,dist=false,animar=false}){
-  const MIN=-7,MAX=7,nums=[];
-  for(let i=MIN;i<=MAX;i++) nums.push(i);
+  // Range dinâmico: calcula MIN/MAX a partir dos valores reais (corrige bug do Sauron desaparecer)
+  const vals=[0,hl,start,end].filter(v=>v!=null);
+  const dataMin=Math.min(...vals),dataMax=Math.max(...vals);
+  const span=Math.max(dataMax-dataMin,4);
+  const pad=Math.max(Math.round(span*0.3),2);
+  const rawRange=(dataMax+pad)-(dataMin-pad);
+  const step=rawRange>60?10:rawRange>30?5:rawRange>16?2:1;
+  const MIN=Math.floor((dataMin-pad)/step)*step;
+  const MAX=Math.ceil((dataMax+pad)/step)*step;
+  const nums=[];
+  for(let i=MIN;i<=MAX;i+=step) nums.push(i);
   const pct=n=>((n-MIN)/(MAX-MIN))*100;
   const [dog,setDog]=useState(end!=null?(start??0):(hl!=null?hl:0));
   const [anda,setAnda]=useState(false);
@@ -372,21 +381,22 @@ function Reta({hl=null,start=null,end=null,dist=false,animar=false}){
     const t=setTimeout(()=>{
       setAnda(true);
       let cur=start??0;
+      const dir=end>cur?1:-1;
       const iv=setInterval(()=>{
-        cur+=(end>cur?1:-1);
-        setDog(cur);
-        if(cur===end){clearInterval(iv);setAnda(false);}
+        cur+=dir*step;
+        if((dir>0&&cur>=end)||(dir<0&&cur<=end)){
+          setDog(end);clearInterval(iv);setAnda(false);
+        } else {setDog(cur);}
       },220);
       return()=>clearInterval(iv);
     },500);
     return()=>clearTimeout(t);
   },[animar,start,end]);
-  // Bug fix: quando só tem hl (sem end), animar não muda dog → usa hl diretamente
   const dp=end!=null?(animar?dog:end):hl;
   return(
     <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"16px",padding:"10px 14px",border:"1px solid rgba(255,255,255,0.08)"}}>
       <div style={{position:"relative",width:"100%",padding:"38px 6px 18px",userSelect:"none"}}>
-        {start!=null&&end!=null&&<div style={{position:"absolute",height:"7px",borderRadius:"4px",background:end>=start?"rgba(52,211,153,0.35)":"rgba(248,113,113,0.35)",left:`${Math.min(pct(Math.max(start,MIN)),pct(Math.max(end,MIN)))}%`,width:`${Math.abs(pct(Math.min(end,MAX))-pct(Math.min(start,MAX)))}%`,top:"27px"}}/>}
+        {start!=null&&end!=null&&<div style={{position:"absolute",height:"7px",borderRadius:"4px",background:end>=start?"rgba(52,211,153,0.35)":"rgba(248,113,113,0.35)",left:`${Math.min(pct(start),pct(end))}%`,width:`${Math.abs(pct(end)-pct(start))}%`,top:"27px"}}/>}
         {dist&&hl!=null&&hl!==0&&<>
           <div style={{position:"absolute",height:"2px",background:"#FBBF24",opacity:.8,left:`${Math.min(pct(0),pct(hl))}%`,width:`${Math.abs(pct(hl)-pct(0))}%`,top:"18px"}}/>
           <div style={{position:"absolute",color:"#FBBF24",fontWeight:900,fontSize:"14px",left:`${(pct(0)+pct(hl))/2}%`,top:"2px",transform:"translateX(-50%)",background:"rgba(0,0,0,0.6)",padding:"1px 6px",borderRadius:"6px"}}>{Math.abs(hl)} passos</div>
@@ -400,11 +410,11 @@ function Reta({hl=null,start=null,end=null,dist=false,animar=false}){
               <div style={{textAlign:"center",marginTop:"5px",fontSize:n===0?"14px":"11px",fontWeight:n===0?900:700,color:n===0?"#FBBF24":n===dp?"#34D399":"rgba(107,114,128,0.5)"}}>{n}</div>
             </div>
           ))}
-          {dp!=null&&dp>=MIN&&dp<=MAX&&<>
+          {dp!=null&&<>
             <div style={{position:"absolute",left:`${pct(dp)}%`,transform:"translateX(-50%) translateY(-100%)",top:"-2px",fontSize:"28px",filter:"drop-shadow(0 0 10px rgba(52,211,153,0.9))",transition:animar?"left 0.2s linear":"none"}} className={anda?"wk":""}>🐕</div>
             <div style={{position:"absolute",left:`${pct(dp)}%`,transform:"translateX(-50%)",top:"-34px",background:"rgba(52,211,153,0.9)",color:"#000",fontWeight:900,fontSize:"15px",padding:"2px 8px",borderRadius:"8px",transition:animar?"left 0.2s linear":"none",whiteSpace:"nowrap"}}>{dp>0?"+":""}{dp}</div>
           </>}
-          {animar&&start!=null&&start>=MIN&&start<=MAX&&<div style={{position:"absolute",left:`${pct(start)}%`,transform:"translateX(-50%) translateY(-100%)",top:"-2px",fontSize:"15px",opacity:.4}}>📍</div>}
+          {animar&&start!=null&&<div style={{position:"absolute",left:`${pct(start)}%`,transform:"translateX(-50%) translateY(-100%)",top:"-2px",fontSize:"15px",opacity:.4}}>📍</div>}
         </div>
       </div>
     </div>
