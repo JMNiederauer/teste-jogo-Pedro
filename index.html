@@ -34,18 +34,78 @@ const css = `
   .gl{animation:pulse 2.5s ease-in-out infinite}
   button:active{transform:scale(0.96)!important}
   button:disabled{cursor:default!important}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.5)}50%{box-shadow:0 0 0 12px rgba(52,211,153,0)}}
+  @keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+  .starPop{animation:starPop .4s ease-out forwards}
+  .glGreen{animation:glow 2s ease-in-out infinite}
 `;
 
-// LAUDO (Caroline da Costa Siqueira, 2025) — princípios que guiam cada decisão:
-// 1. Memória episódica GRAVE → "lembrete" do conceito-núcleo ao iniciar sessão 2+
-// 2. Memória operacional verbal moderada → 1 conceito por vez, nunca regra antes do visual
-// 3. Atenção auditiva moderada → textos curtos: máx 1-2 frases por tela
+// ─── TTS — leitura em voz alta (F81.1: suporte à decodificação leitora) ───────
+window._ttsOn = true;
+function falarTexto(txt, rate=0.88) {
+  if (!window._ttsOn || !window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    const limpo = (txt||"")
+      .replace(/−/g, " menos ").replace(/-(\d)/g, " menos $1")
+      .replace(/\+(\d)/g, " mais $1").replace(/\|/g, " módulo ")
+      .replace(/[=]/g, " igual a ").replace(/[→←►◄]/g, ". ")
+      .replace(/[🎮🥋💸🏢📍📏🪞👣➕⚖️➖📊✍️🗺️🎯🔑⚠️🫥🏆⭐🔒❤️📖⚔️🔄✅💡]/g, "");
+    const u = new SpeechSynthesisUtterance(limpo);
+    u.lang = "pt-BR"; u.rate = rate; u.pitch = 1.05;
+    window.speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+// Sons de feedback — Web Audio API, sem dependências externas
+function playSound(tipo) {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    if (tipo === "ok") {
+      o.type = "sine";
+      o.frequency.setValueAtTime(523, ctx.currentTime);
+      o.frequency.setValueAtTime(659, ctx.currentTime + 0.12);
+      o.frequency.setValueAtTime(784, ctx.currentTime + 0.24);
+      g.gain.setValueAtTime(0.28, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      o.start(); o.stop(ctx.currentTime + 0.6);
+    } else {
+      o.type = "triangle";
+      o.frequency.setValueAtTime(250, ctx.currentTime);
+      o.frequency.setValueAtTime(200, ctx.currentTime + 0.15);
+      g.gain.setValueAtTime(0.18, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      o.start(); o.stop(ctx.currentTime + 0.4);
+    }
+  } catch(e) {}
+}
+
+// Destaca números e sinais matemáticos no texto — canal visual preservado
+function TextNum({txt}) {
+  if (!txt) return null;
+  const partes = String(txt).split(/(−\d+|\+\d+|-\d+|\d+)/g);
+  return React.createElement(React.Fragment, null,
+    partes.map((p, i) => /^(−\d+|\+\d+|-\d+|\d+)$/.test(p)
+      ? React.createElement("span", {key:i, style:{color:"#FBBF24",fontWeight:900,fontFamily:"monospace",fontSize:"1.05em"}}, p)
+      : p
+    )
+  );
+}
+
+// DIAGNÓSTICO: Transtorno Específico da Aprendizagem — expressão escrita (F81.1 / CID-11 6A02.2 / DSM-5-TR 315.2)
+// Princípios que guiam cada decisão de design:
+// 1. Memória episódica GRAVE → lembrete do conceito-núcleo ao iniciar sessão 2+
+// 2. Memória operacional verbal moderada → 1 conceito por vez; regra só após visual
+// 3. Atenção auditiva moderada → frases curtas; TTS lê perguntas em voz alta
 // 4. Critério de avanço = estabilização → sessoesNecessarias por bloco (localStorage)
-// 5. Perfeccionismo percentil 91% → revisão com retry explícito, nunca só shake silencioso
+// 5. Perfeccionismo / medo de errar → nunca diz "errado"; sempre "veja como fica"
 // 6. Controle inibitório fraco → reta disponível ANTES do erro, não como punição
-// 7. Raramente pede ajuda → botão da mãe sempre visível; reta acessível sem precisar errar
-// 8. Expressão escrita GRAVE → múltipla escolha, opções curtas, sem produção textual
-// 9. Relatório rico → mãe vê qual questão específica precisou de mediação
+// 7. Raramente pede ajuda → botão da mãe sempre visível e pulsando
+// 8. Expressão escrita GRAVE → múltipla escolha, números destacados, sem digitação
+// 9. Padrão internalizante → sons positivos, celebração visual, linguagem acolhedora
+// 10. Relatório rico → mãe vê qual questão específica precisou de mediação
 
 const BLOCOS = [
   {
@@ -488,8 +548,25 @@ function App(){
   const [humor,setHumor]=useState("n");
   // log detalhado por questão — laudo: relatório rico para mediação externa da mãe
   const [log,setLog]=useState([]);
+  // TTS toggle — F81.1: leitura em voz alta como suporte
+  const [ttsOn, setTtsOn]=useState(true);
+  useEffect(()=>{ window._ttsOn=ttsOn; },[ttsOn]);
 
   const B=BLOCOS[bi]||BLOCOS[0];
+
+  // Auto-leitura da pergunta ao aparecer — F81.1: reduz carga de decodificação leitora
+  useEffect(()=>{
+    if(fase==="qs"&&B.questoes[qi]){
+      const q=B.questoes[qi];
+      const t=setTimeout(()=>falarTexto(q.ctx+". "+q.perg, 0.84), 500);
+      return()=>clearTimeout(t);
+    }
+    if(fase==="rev"&&B.revisao&&B.revisao[ri]){
+      const r=B.revisao[ri];
+      const t=setTimeout(()=>falarTexto(r.perg, 0.84), 400);
+      return()=>clearTimeout(t);
+    }
+  },[qi,ri,fase,bi]);
 
   // Quantas sessões o Pedro completou neste bloco
   const getSessoes=id=>storage.blocos[id]?.sessoes||0;
@@ -541,14 +618,17 @@ function App(){
     setTent(t);
     setSel(i);
     if(i===q.ok){
-      setHumor("f");
+      setHumor("f"); playSound("ok");
       const res=t===1?"ok":retaVis?"com_reta":"tentou";
       setLog(l=>[...l,{qi,ctx:q.ctx,perg:q.perg,res}]);
+      // Auto-leitura do feedback — F81.1: reforço auditivo
+      setTimeout(()=>falarTexto("Isso! "+q.feed, 0.88), 700);
     }else{
-      setHumor("c");
-      // Laudo: medo de errar, perfeccionismo → mostra resposta correta imediatamente, sem "tenta de novo"
+      setHumor("c"); playSound("err");
+      // F81.1 / padrão internalizante: nunca "errado" — mostra resposta imediatamente
       setRev(true);
       setLog(l=>[...l,{qi,ctx:q.ctx,perg:q.perg,res:"revelou"}]);
+      setTimeout(()=>falarTexto("Veja como fica. "+q.feed, 0.88), 900);
     }
   };
 
@@ -664,7 +744,7 @@ function App(){
         <div style={{textAlign:"center"}}>
           <div style={{fontSize:"68px",filter:"drop-shadow(0 4px 20px rgba(52,211,153,0.6))"}} className="bn">🥷</div>
           <h2 style={{fontSize:"32px",fontWeight:900,color:dominado&&!precisaRepetir?"#6EE7B7":"#FBBF24",margin:"12px 0 4px",letterSpacing:".5px"}}>
-            {dominado&&!precisaRepetir?"FASE VENCIDA! 🏆":"RODADA CONCLUÍDA"}
+            {dominado&&!precisaRepetir?"FASE VENCIDA! 🏆 ":"RODADA CONCLUÍDA! 💪"}
           </h2>
           <p style={{color:"rgba(156,163,175,1)",fontSize:"16px",fontWeight:600,margin:0}}>
             FASE {bi+1} · {B.emoji} {B.titulo}
@@ -710,10 +790,10 @@ function App(){
           </div>
         )}
 
-        {/* Recomendação — laudo: Pedro não vê erro; mãe recebe via WhatsApp */}
+        {/* F81.1: Pedro não vê "errou muito" — mensagem encorajadora; mãe recebe detalhes via WhatsApp */}
         {precisaRepetir&&(
           <div style={{width:"100%",maxWidth:"400px",background:"rgba(90,60,0,0.3)",border:"1px solid rgba(251,191,36,0.35)",borderRadius:"14px",padding:"14px 18px"}}>
-            <p style={{color:"#FDE68A",fontSize:"16px",fontWeight:700,margin:0}}>Quer tentar mais uma rodada? Treinar mais ajuda a fixar.</p>
+            <p style={{color:"#FDE68A",fontSize:"16px",fontWeight:700,margin:0}}>Mais uma rodada e você domina! Repetir ajuda o cérebro a guardar. 🧠💪</p>
           </div>
         )}
 
@@ -760,9 +840,16 @@ function App(){
             <p style={{color:"rgba(255,255,255,0.5)",fontSize:"10px",fontWeight:800,margin:"0 0 1px",letterSpacing:"2px",textTransform:"uppercase"}}>FASE {bi+1} · RODADA {Math.min(sessaoAtual,B.sessoesNecessarias)}/{B.sessoesNecessarias}</p>
             <p style={{color:"#fff",fontWeight:900,fontSize:"17px",margin:0,letterSpacing:".3px"}}>{B.emoji} {B.titulo}</p>
           </div>
-          {/* Botão da mãe no header — sempre visível — laudo: raramente pede ajuda */}
-          <button onClick={()=>wa("dv")}
-            style={{background:"rgba(0,0,0,0.25)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"10px",width:"44px",height:"44px",fontSize:"18px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>❤️</button>
+          {/* Controles do header: TTS + botão da mãe */}
+          <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
+            <button onClick={()=>setTtsOn(v=>!v)}
+              title={ttsOn?"Desligar voz":"Ligar voz"}
+              style={{background:ttsOn?"rgba(52,211,153,0.25)":"rgba(0,0,0,0.25)",border:`1px solid ${ttsOn?"rgba(52,211,153,0.5)":"rgba(255,255,255,0.2)"}`,borderRadius:"10px",width:"44px",height:"44px",fontSize:"20px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {ttsOn?"🔊":"🔇"}
+            </button>
+            <button onClick={()=>wa("dv")}
+              style={{background:"rgba(0,0,0,0.25)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"10px",width:"44px",height:"44px",fontSize:"18px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>❤️</button>
+          </div>
         </div>
         {fase==="qs"&&(
           <div style={{display:"flex",gap:"4px",marginBottom:"10px"}}>
@@ -786,14 +873,18 @@ function App(){
           <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
             <div style={{background:"rgba(37,99,235,0.2)",border:"2px solid rgba(59,130,246,0.4)",borderRadius:"14px",padding:"18px 20px"}}>
               <p style={{color:"#93C5FD",fontSize:"13px",fontWeight:800,margin:"0 0 10px",letterSpacing:"1.5px"}}>⚡ REVISÃO RÁPIDA</p>
-              <p style={{color:"#fff",fontSize:"26px",fontWeight:900,margin:0,lineHeight:1.35}}>{rv2.perg}</p>
+              <div style={{display:"flex",alignItems:"flex-start",gap:"10px"}}>
+                <p style={{color:"#fff",fontSize:"26px",fontWeight:900,margin:0,lineHeight:1.35,flex:1}}><TextNum txt={rv2.perg}/></p>
+                <button onClick={()=>falarTexto(rv2.perg,0.82)} title="Ouvir" style={{background:"rgba(52,211,153,0.15)",border:"1px solid rgba(52,211,153,0.4)",borderRadius:"10px",padding:"8px 10px",fontSize:"18px",cursor:"pointer",flexShrink:0}}>🔊</button>
+              </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
               {rv2.ops.map((o,i)=>(
                 <button key={i} onClick={()=>{
-                  if(i===rv2.ok){setHumor("f");setTimeout(()=>{setHumor("n");avan();},900);}
-                  else{setHumor("c");setTimeout(()=>setHumor("n"),900);}
-                }} style={{width:"100%",minHeight:"58px",textAlign:"left",padding:"14px 18px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.07)",color:"#E5E7EB",fontSize:"21px",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center"}}>{o}</button>
+                  falarTexto(o,0.9);
+                  if(i===rv2.ok){setHumor("f");playSound("ok");setTimeout(()=>{setHumor("n");avan();},900);}
+                  else{setHumor("c");playSound("err");setTimeout(()=>setHumor("n"),900);}
+                }} style={{width:"100%",minHeight:"66px",textAlign:"left",padding:"16px 20px",borderRadius:"14px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.07)",color:"#E5E7EB",fontSize:"22px",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",lineHeight:1.3}}><TextNum txt={o}/></button>
               ))}
             </div>
           </div>
@@ -814,8 +905,13 @@ function App(){
         {fase==="qs"&&q&&(
           <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
             <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"14px",padding:"18px 20px",border:"1px solid rgba(255,255,255,0.08)"}}>
-              <p style={{color:"rgba(107,114,128,1)",fontSize:"17px",fontWeight:600,margin:"0 0 8px"}}>{q.ctx}</p>
-              <p style={{color:"#fff",fontSize:"27px",fontWeight:900,margin:0,lineHeight:1.35}}>{q.perg}</p>
+              <p style={{color:"rgba(107,114,128,1)",fontSize:"17px",fontWeight:600,margin:"0 0 8px"}}><TextNum txt={q.ctx}/></p>
+              <div style={{display:"flex",alignItems:"flex-start",gap:"10px"}}>
+                <p style={{color:"#fff",fontSize:"27px",fontWeight:900,margin:0,lineHeight:1.35,flex:1}}><TextNum txt={q.perg}/></p>
+                <button onClick={()=>falarTexto(q.ctx+". "+q.perg, 0.82)}
+                  title="Ouvir pergunta"
+                  style={{background:"rgba(52,211,153,0.15)",border:"1px solid rgba(52,211,153,0.4)",borderRadius:"10px",padding:"8px 10px",fontSize:"20px",cursor:"pointer",flexShrink:0,marginTop:"2px"}}>🔊</button>
+              </div>
             </div>
 
             {/* Reta numérica — sempre visível — laudo: memória operacional frágil, canal visuoespacial preservado */}
@@ -844,9 +940,9 @@ function App(){
                   op=0.28;
                 }
                 return(
-                  <button key={i} onClick={()=>sel==null?pick(i):null}
-                    style={{width:"100%",minHeight:"66px",textAlign:"left",padding:"16px 20px",borderRadius:"12px",border:br,background:bg,color:fc,fontSize:"22px",fontWeight:700,cursor:sel==null?"pointer":"default",transition:"opacity 0.25s,background 0.2s,border 0.2s,box-shadow 0.2s",display:"flex",alignItems:"center",opacity:op,boxShadow:sel===i&&acertou?"0 0 18px rgba(52,211,153,0.35)":sel===i&&!acertou?"0 0 14px rgba(248,113,113,0.25)":"none"}}>
-                    {prefix}{o}
+                  <button key={i} onClick={()=>{ if(sel==null){ falarTexto(o,0.9); pick(i); } }}
+                    style={{width:"100%",minHeight:"74px",textAlign:"left",padding:"18px 22px",borderRadius:"14px",border:br,background:bg,color:fc,fontSize:"23px",fontWeight:700,cursor:sel==null?"pointer":"default",transition:"opacity 0.25s,background 0.2s,border 0.2s,box-shadow 0.2s",display:"flex",alignItems:"center",opacity:op,boxShadow:sel===i&&acertou?"0 0 18px rgba(52,211,153,0.35)":sel===i&&!acertou?"0 0 14px rgba(248,113,113,0.25)":"none",letterSpacing:".2px",lineHeight:1.3}}>
+                    {prefix}<TextNum txt={o}/>
                   </button>
                 );
               })}
@@ -859,14 +955,14 @@ function App(){
                 border:acertou?"2px solid rgba(52,211,153,0.55)":"1px solid rgba(255,255,255,0.08)"}}>
                 {acertou?(
                   <>
-                    <p style={{color:"#6EE7B7",fontWeight:900,fontSize:"28px",margin:"0 0 6px",letterSpacing:".5px"}}>CORRETO! 🎯</p>
-                    <p style={{color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:600,margin:0,lineHeight:1.55}}>{q.feed}</p>
+                    <p style={{color:"#6EE7B7",fontWeight:900,fontSize:"28px",margin:"0 0 6px",letterSpacing:".5px"}}>Isso! Você sabia! 🎯</p>
+                    <p style={{color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:600,margin:0,lineHeight:1.55}}><TextNum txt={q.feed}/></p>
                   </>
                 ):rev?(
-                  // Nunca "errado" — laudo: medo de errar, perfeccionismo
+                  // F81.1 / padrão internalizante: nunca "errado" — acolhe e explica
                   <>
-                    <p style={{color:"#FBBF24",fontWeight:900,fontSize:"22px",margin:"0 0 6px"}}>Veja como fica 👇</p>
-                    <p style={{color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:600,margin:0,lineHeight:1.55}}>{q.feed}</p>
+                    <p style={{color:"#FBBF24",fontWeight:900,fontSize:"22px",margin:"0 0 6px"}}>Olha só como funciona 👇</p>
+                    <p style={{color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:600,margin:0,lineHeight:1.55}}><TextNum txt={q.feed}/></p>
                   </>
                 ):null}
               </div>
