@@ -79,7 +79,7 @@ const BLOCOS = [
           {t:"fala", v:"O zero é a referência. Tudo começa aqui."},
           {t:"reta", hl:0},
           {t:"regra", v:"👈  Esquerda = NEGATIVOS\n👉  Direita = POSITIVOS"},
-          {t:"dica", v:"🐕 O Sauron fica no zero.\nPara frente = positivo. Para trás = negativo."},
+          {t:"dica", v:"🥷 O guerreiro fica no zero.\nPara frente = positivo. Para trás = negativo."},
         ]
       },
     ],
@@ -113,7 +113,7 @@ const BLOCOS = [
           {t:"fala", v:"Na reta numérica, todo número tem um lugar fixo. Como o mapa do Roblox!"},
           {t:"reta", hl:0},
           {t:"lista", vs:["👉 Direita = positivos","👈 Esquerda = negativos","Mais à direita → MAIOR","Mais à esquerda → MENOR"]},
-          {t:"dica", v:"🐕 Mais à direita = maior.\nMais à esquerda = menor."},
+          {t:"dica", v:"🥷 Mais à direita = maior.\nMais à esquerda = menor."},
         ]
       },
       { titulo:"Localizando números na reta 📍",
@@ -163,7 +163,7 @@ const BLOCOS = [
             {e:"|−5| = 5",d:"também 5 passos — mesma distância!"},
             {e:"|0| = 0", d:"zero passos — já está no zero"},
           ]},
-          {t:"dica", v:"🐕 O módulo é SEMPRE positivo ou zero!"},
+          {t:"dica", v:"🥷 O módulo é SEMPRE positivo ou zero!"},
         ]
       },
     ],
@@ -296,7 +296,7 @@ const BLOCOS = [
     slides:[
       { titulo:"Somar zero = não se mover 🫥",
         itens:[
-          {t:"fala", v:"Quando você soma zero, o Sauron não sai do lugar."},
+          {t:"fala", v:"Quando você soma zero, o guerreiro não se move."},
           {t:"exemploAnm", expr:"−8 + 0", passos:["Começa no −8","Soma 0 → não anda","Fica no −8 ✅"],nl:{start:-8,end:-8}},
           {t:"regra", v:"Qualquer número + 0 = o próprio número.\nO zero é o ELEMENTO NEUTRO."},
         ]
@@ -305,7 +305,7 @@ const BLOCOS = [
         itens:[
           {t:"fala", v:"Quando você soma um número com o simétrico dele, o resultado é sempre zero."},
           {t:"exemploAnm", expr:"−6 + 6", passos:["Começa no −6","Soma +6 (oposto de −6)","Anda 6 para a direita","Chega no 0 ✅"],nl:{start:-6,end:0}},
-          {t:"regra", v:"Número + seu oposto = zero.\n🐕 O Sauron sempre volta para casa!"},
+          {t:"regra", v:"Número + seu oposto = zero.\n🥷 Soma com o oposto → sempre volta ao zero!"},
         ]
       },
     ],
@@ -315,7 +315,7 @@ const BLOCOS = [
       {ctx:"🪞 Elemento oposto:",perg:"−6 + 6 = ?",
        ops:["12","−12","−6","0"],ok:3,feed:"+6 é o oposto de −6. Número + oposto = zero!",nl:{start:-6,end:0}},
       {ctx:"🎮 Você está em +5 e recebe −5 de dano.",perg:"+5 + (−5) = ?",
-       ops:["+10","0","−5","+5"],ok:1,feed:"+5+(−5)=0. Oposto! O Sauron voltou para o zero.",nl:{start:5,end:0}},
+       ops:["+10","0","−5","+5"],ok:1,feed:"+5+(−5)=0. Oposto! Soma com o oposto = zero.",nl:{start:5,end:0}},
     ]
   },
   {
@@ -337,7 +337,7 @@ const BLOCOS = [
             {o:"3−8",   tr:"3+(−8)",  r:-5, nl:{start:3,end:-5}},
             {o:"−2−3",  tr:"−2+(−3)", r:-5, nl:{start:-2,end:-5}},
           ]},
-          {t:"dica", v:"🐕 Troca o sinal do segundo e soma!\nDepois é só caminhar na reta."},
+          {t:"dica", v:"🥷 Troca o sinal do segundo e soma!\nDepois é só caminhar na reta."},
         ]
       },
       { titulo:"Subtrair um NEGATIVO ⚠️",
@@ -413,7 +413,7 @@ function Reta({hl=null,start=null,end=null,dist=false,animar=false}){
             </div>
           ))}
           {dp!=null&&<>
-            <div style={{position:"absolute",left:`${pct(dp)}%`,transform:"translateX(-50%) translateY(-100%)",top:"-2px",fontSize:"28px",filter:"drop-shadow(0 0 10px rgba(52,211,153,0.9))",transition:animar?"left 0.2s linear":"none"}} className={anda?"wk":""}>🐕</div>
+            <div style={{position:"absolute",left:`${pct(dp)}%`,transform:"translateX(-50%) translateY(-100%)",top:"-2px",fontSize:"28px",filter:"drop-shadow(0 0 10px rgba(52,211,153,0.9))",transition:animar?"left 0.2s linear":"none"}} className={anda?"wk":""}>🥷</div>
             <div style={{position:"absolute",left:`${pct(dp)}%`,transform:"translateX(-50%)",top:"-34px",background:"rgba(52,211,153,0.9)",color:"#000",fontWeight:900,fontSize:"15px",padding:"2px 8px",borderRadius:"8px",transition:animar?"left 0.2s linear":"none",whiteSpace:"nowrap"}}>{dp>0?"+":""}{dp}</div>
           </>}
           {animar&&start!=null&&<div style={{position:"absolute",left:`${pct(start)}%`,transform:"translateX(-50%) translateY(-100%)",top:"-2px",fontSize:"15px",opacity:.4}}>📍</div>}
@@ -429,23 +429,23 @@ function Item({item}){
     if(item.t==="exemploAnm"||item.t==="reta"){const t=setTimeout(()=>setAnm(true),600);return()=>clearTimeout(t);}
   },[item.t]);
   const c={background:"rgba(255,255,255,0.07)",borderRadius:"18px",padding:"16px 18px",border:"1px solid rgba(255,255,255,0.08)"};
-  if(item.t==="fala") return <p className="up" style={{color:"#E5E7EB",fontSize:"20px",fontWeight:700,lineHeight:1.6,whiteSpace:"pre-line"}}>{item.v}</p>;
-  if(item.t==="dica") return <div style={{background:"rgba(120,80,0,0.3)",border:"2px solid rgba(251,191,36,0.5)",borderRadius:"18px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#FDE68A",fontSize:"19px",fontWeight:800,margin:i?"6px 0 0":0}}>{l}</p>)}</div>;
-  if(item.t==="aviso") return <div style={{background:"rgba(120,40,0,0.3)",border:"2px solid rgba(251,146,60,0.5)",borderRadius:"18px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#FED7AA",fontSize:"19px",fontWeight:700,margin:i?"6px 0 0":0}}>{l}</p>)}</div>;
-  if(item.t==="regra") return <div style={{background:"rgba(60,20,100,0.35)",border:"2px solid rgba(167,139,250,0.5)",borderRadius:"18px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#DDD6FE",fontSize:"19px",fontWeight:800,margin:i?"6px 0 0":0}}>{l}</p>)}</div>;
-  if(item.t==="bigRegra") return <div style={{background:"rgba(0,60,30,0.35)",border:"2px solid rgba(52,211,153,0.5)",borderRadius:"18px",padding:"18px",textAlign:"center"}} className="up pop"><p style={{color:"#6EE7B7",fontSize:"24px",fontWeight:900,margin:0,fontFamily:"monospace"}}>{item.v}</p></div>;
+  if(item.t==="fala") return <p className="up" style={{color:"#E5E7EB",fontSize:"23px",fontWeight:700,lineHeight:1.55,whiteSpace:"pre-line"}}>{item.v}</p>;
+  if(item.t==="dica") return <div style={{background:"rgba(120,80,0,0.3)",border:"2px solid rgba(251,191,36,0.5)",borderRadius:"16px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#FDE68A",fontSize:"21px",fontWeight:800,margin:i?"8px 0 0":0}}>{l}</p>)}</div>;
+  if(item.t==="aviso") return <div style={{background:"rgba(120,40,0,0.3)",border:"2px solid rgba(251,146,60,0.5)",borderRadius:"16px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#FED7AA",fontSize:"21px",fontWeight:700,margin:i?"8px 0 0":0}}>{l}</p>)}</div>;
+  if(item.t==="regra") return <div style={{background:"rgba(60,20,100,0.35)",border:"2px solid rgba(167,139,250,0.5)",borderRadius:"16px",padding:"16px 18px"}} className="up">{item.v.split('\n').map((l,i)=><p key={i} style={{color:"#DDD6FE",fontSize:"21px",fontWeight:800,margin:i?"8px 0 0":0}}>{l}</p>)}</div>;
+  if(item.t==="bigRegra") return <div style={{background:"rgba(0,60,30,0.35)",border:"2px solid rgba(52,211,153,0.5)",borderRadius:"16px",padding:"18px",textAlign:"center"}} className="up pop"><p style={{color:"#6EE7B7",fontSize:"30px",fontWeight:900,margin:0,fontFamily:"monospace"}}>{item.v}</p></div>;
   if(item.t==="reta") return <div className="up"><Reta hl={item.hl} animar={anm}/></div>;
-  if(item.t==="lista") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"8px"}}>{item.vs.map((r,i)=><div key={i} style={c}><p style={{color:"#E5E7EB",fontSize:"19px",fontWeight:700,margin:0}}>{r}</p></div>)}</div>;
-  if(item.t==="cards") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.cards.map((cd,i)=><div key={i} style={{...c,display:"flex",alignItems:"flex-start",gap:"14px"}}><span style={{fontSize:"30px"}}>{cd.e}</span><div><p style={{color:"#fff",fontSize:"19px",fontWeight:900,margin:0}}>{cd.tit}</p><p style={{color:"#93C5FD",fontSize:"18px",fontWeight:700,margin:"2px 0 0"}}>{cd.ex}</p><p style={{color:"rgba(156,163,175,1)",fontSize:"17px",fontWeight:600,margin:"2px 0 0"}}>{cd.exp}</p></div></div>)}</div>;
-  if(item.t==="modEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ns.map((n,i)=><div key={i} style={c}><p style={{color:"#FBBF24",fontSize:"21px",fontWeight:900,textAlign:"center",margin:"0 0 4px"}}>|{n}| = {Math.abs(n)}</p><Reta hl={n} dist/></div>)}</div>;
-  if(item.t==="notacao") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"8px"}}>{item.ns.map((x,i)=><div key={i} style={c}><p style={{color:"#6EE7B7",fontSize:"21px",fontWeight:900,fontFamily:"monospace",margin:0}}>{x.e}</p><p style={{color:"rgba(156,163,175,1)",fontSize:"17px",fontWeight:600,margin:"4px 0 0"}}>{x.d}</p></div>)}</div>;
-  if(item.t==="retaEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ex.map((x,i)=><div key={i}><p style={{color:"#6EE7B7",fontSize:"18px",fontWeight:700,margin:"0 0 6px",paddingLeft:"4px"}}>{x.desc}</p><Reta hl={x.n}/></div>)}</div>;
-  if(item.t==="espelho") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.pares.map((x,i)=><div key={i} style={c}><div style={{display:"flex",justifyContent:"space-between",marginBottom:"6px"}}><span style={{color:"#93C5FD",fontSize:"23px",fontWeight:900}}>{x.s}</span><span style={{color:"#FBBF24",fontSize:"17px",fontWeight:800}}>🪞 zero 🪞</span><span style={{color:"#FCA5A5",fontSize:"23px",fontWeight:900}}>+{x.n}</span></div><Reta hl={x.n}/></div>)}</div>;
-  if(item.t==="passos") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.ps.map((x,i)=><div key={i} style={c}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{color:"#93C5FD",fontSize:"18px",fontWeight:700}}>← {x.ant}</span><span style={{color:"#fff",fontSize:"26px",fontWeight:900}}>{x.n}</span><span style={{color:"#6EE7B7",fontSize:"18px",fontWeight:700}}>{x.suc} →</span></div>{x.nota&&<p style={{color:"#FDE68A",fontSize:"17px",fontWeight:800,margin:"6px 0 0"}}>{x.nota}</p>}</div>)}</div>;
-  if(item.t==="direcao") return <div className="up" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>{item.ds.map((r,i)=><div key={i} style={{borderRadius:"18px",padding:"16px",textAlign:"center",border:`2px solid ${i===0?"rgba(52,211,153,0.4)":"rgba(248,113,113,0.4)"}`,background:i===0?"rgba(0,60,30,0.3)":"rgba(80,0,0,0.3)"}}><div style={{fontSize:"36px"}}>{r.em}</div><p style={{color:i===0?"#6EE7B7":"#FCA5A5",fontSize:"16px",fontWeight:800,margin:"8px 0 2px"}}>{r.sinal}</p><p style={{color:"#fff",fontSize:"20px",fontWeight:900,margin:0}}>{r.dir}</p></div>)}</div>;
-  if(item.t==="exemploAnm") return <div style={c} className="up"><p style={{color:"#FBBF24",fontWeight:900,textAlign:"center",fontSize:"25px",margin:"0 0 14px",fontFamily:"monospace"}}>{item.expr}</p><div style={{display:"flex",flexDirection:"column",gap:"8px",marginBottom:"14px"}}>{item.passos.map((s,i)=><div key={i} style={{display:"flex",gap:"12px",alignItems:"flex-start"}}><span style={{color:"rgba(107,114,128,1)",fontSize:"16px",marginTop:"2px",minWidth:"22px",fontWeight:700}}>{i+1}.</span><span style={{color:"#E5E7EB",fontSize:"19px",fontWeight:700}}>{s}</span></div>)}</div>{item.nl&&<Reta start={item.nl.start} end={item.nl.end} animar={anm}/>}</div>;
-  if(item.t==="regraBox") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.rs.map((r,i)=><div key={i} style={c}><p style={{color:"#FBBF24",fontSize:"19px",fontWeight:900,margin:"0 0 4px"}}>{r.tit}</p><p style={{color:"#E5E7EB",fontSize:"18px",fontWeight:700,margin:"0 0 6px"}}>{r.reg}</p><p style={{color:"#6EE7B7",fontSize:"18px",fontFamily:"monospace",fontWeight:800,margin:0,whiteSpace:"pre-line"}}>{r.ex}</p></div>)}</div>;
-  if(item.t==="subEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ss.map((x,i)=><div key={i} style={c}><p style={{fontSize:"19px",fontWeight:900,margin:"0 0 6px"}}><span style={{color:"#FBBF24"}}>{x.o}</span><span style={{color:"rgba(107,114,128,1)"}}> = </span><span style={{color:"#93C5FD"}}>{x.tr}</span><span style={{color:"rgba(107,114,128,1)"}}> = </span><span style={{color:"#6EE7B7",fontWeight:900}}>{x.r}</span></p><Reta start={x.nl.start} end={x.nl.end}/></div>)}</div>;
+  if(item.t==="lista") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"8px"}}>{item.vs.map((r,i)=><div key={i} style={c}><p style={{color:"#E5E7EB",fontSize:"21px",fontWeight:700,margin:0}}>{r}</p></div>)}</div>;
+  if(item.t==="cards") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.cards.map((cd,i)=><div key={i} style={{...c,display:"flex",alignItems:"flex-start",gap:"14px"}}><span style={{fontSize:"32px"}}>{cd.e}</span><div><p style={{color:"#fff",fontSize:"21px",fontWeight:900,margin:0}}>{cd.tit}</p><p style={{color:"#93C5FD",fontSize:"20px",fontWeight:700,margin:"2px 0 0"}}>{cd.ex}</p><p style={{color:"rgba(156,163,175,1)",fontSize:"18px",fontWeight:600,margin:"2px 0 0"}}>{cd.exp}</p></div></div>)}</div>;
+  if(item.t==="modEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ns.map((n,i)=><div key={i} style={c}><p style={{color:"#FBBF24",fontSize:"24px",fontWeight:900,textAlign:"center",margin:"0 0 4px"}}>|{n}| = {Math.abs(n)}</p><Reta hl={n} dist/></div>)}</div>;
+  if(item.t==="notacao") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"8px"}}>{item.ns.map((x,i)=><div key={i} style={c}><p style={{color:"#6EE7B7",fontSize:"24px",fontWeight:900,fontFamily:"monospace",margin:0}}>{x.e}</p><p style={{color:"rgba(156,163,175,1)",fontSize:"19px",fontWeight:600,margin:"4px 0 0"}}>{x.d}</p></div>)}</div>;
+  if(item.t==="retaEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ex.map((x,i)=><div key={i}><p style={{color:"#6EE7B7",fontSize:"20px",fontWeight:700,margin:"0 0 6px",paddingLeft:"4px"}}>{x.desc}</p><Reta hl={x.n}/></div>)}</div>;
+  if(item.t==="espelho") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.pares.map((x,i)=><div key={i} style={c}><div style={{display:"flex",justifyContent:"space-between",marginBottom:"6px"}}><span style={{color:"#93C5FD",fontSize:"26px",fontWeight:900}}>{x.s}</span><span style={{color:"#FBBF24",fontSize:"18px",fontWeight:800}}>🪞 zero 🪞</span><span style={{color:"#FCA5A5",fontSize:"26px",fontWeight:900}}>+{x.n}</span></div><Reta hl={x.n}/></div>)}</div>;
+  if(item.t==="passos") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.ps.map((x,i)=><div key={i} style={c}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{color:"#93C5FD",fontSize:"20px",fontWeight:700}}>← {x.ant}</span><span style={{color:"#fff",fontSize:"30px",fontWeight:900}}>{x.n}</span><span style={{color:"#6EE7B7",fontSize:"20px",fontWeight:700}}>{x.suc} →</span></div>{x.nota&&<p style={{color:"#FDE68A",fontSize:"19px",fontWeight:800,margin:"8px 0 0"}}>{x.nota}</p>}</div>)}</div>;
+  if(item.t==="direcao") return <div className="up" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>{item.ds.map((r,i)=><div key={i} style={{borderRadius:"16px",padding:"18px",textAlign:"center",border:`2px solid ${i===0?"rgba(52,211,153,0.4)":"rgba(248,113,113,0.4)"}`,background:i===0?"rgba(0,60,30,0.3)":"rgba(80,0,0,0.3)"}}><div style={{fontSize:"38px"}}>{r.em}</div><p style={{color:i===0?"#6EE7B7":"#FCA5A5",fontSize:"17px",fontWeight:800,margin:"8px 0 2px"}}>{r.sinal}</p><p style={{color:"#fff",fontSize:"23px",fontWeight:900,margin:0}}>{r.dir}</p></div>)}</div>;
+  if(item.t==="exemploAnm") return <div style={c} className="up"><p style={{color:"#FBBF24",fontWeight:900,textAlign:"center",fontSize:"28px",margin:"0 0 14px",fontFamily:"monospace"}}>{item.expr}</p><div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"14px"}}>{item.passos.map((s,i)=><div key={i} style={{display:"flex",gap:"12px",alignItems:"flex-start"}}><span style={{color:"rgba(107,114,128,1)",fontSize:"17px",marginTop:"2px",minWidth:"22px",fontWeight:700}}>{i+1}.</span><span style={{color:"#E5E7EB",fontSize:"21px",fontWeight:700}}>{s}</span></div>)}</div>{item.nl&&<Reta start={item.nl.start} end={item.nl.end} animar={anm}/>}</div>;
+  if(item.t==="regraBox") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"10px"}}>{item.rs.map((r,i)=><div key={i} style={c}><p style={{color:"#FBBF24",fontSize:"21px",fontWeight:900,margin:"0 0 4px"}}>{r.tit}</p><p style={{color:"#E5E7EB",fontSize:"20px",fontWeight:700,margin:"0 0 6px"}}>{r.reg}</p><p style={{color:"#6EE7B7",fontSize:"20px",fontFamily:"monospace",fontWeight:800,margin:0,whiteSpace:"pre-line"}}>{r.ex}</p></div>)}</div>;
+  if(item.t==="subEx") return <div className="up" style={{display:"flex",flexDirection:"column",gap:"12px"}}>{item.ss.map((x,i)=><div key={i} style={c}><p style={{fontSize:"21px",fontWeight:900,margin:"0 0 6px"}}><span style={{color:"#FBBF24"}}>{x.o}</span><span style={{color:"rgba(107,114,128,1)"}}> = </span><span style={{color:"#93C5FD"}}>{x.tr}</span><span style={{color:"rgba(107,114,128,1)"}}> = </span><span style={{color:"#6EE7B7",fontWeight:900}}>{x.r}</span></p><Reta start={x.nl.start} end={x.nl.end}/></div>)}</div>;
   return null;
 }
 
@@ -557,7 +557,7 @@ function App(){
           `✅ Direto: ${ok}   💡 Com apoio: ${dc}   ⚠️ Revelou: ${rv}\n\n`+
           rec;
     }else{
-      msg=`🐕 Oi mãe! Estou com dúvida no *${B.emoji} ${B.titulo}*. Pode me ajudar? 😊`;
+      msg=`Oi mãe! Estou com dúvida no *${B.emoji} ${B.titulo}*. Pode me ajudar?`;
     }
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`,"_blank");
   };
@@ -578,50 +578,48 @@ function App(){
   if(tela==="home") return(
     <><style>{css}</style>
     <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",paddingBottom:"50px"}}>
-      <div style={{textAlign:"center",padding:"40px 24px 24px"}}>
-        <div style={{fontSize:"56px",filter:"drop-shadow(0 0 10px rgba(52,211,153,0.35))"}}>🐕</div>
-        <h1 style={{fontSize:"24px",fontWeight:800,margin:"8px 0 4px"}}>Olá, Pedro!</h1>
-        <p style={{color:"rgba(107,114,128,1)",fontSize:"15px",fontWeight:600,margin:0,letterSpacing:".3px"}}>Números Inteiros · 7º ano</p>
+      {/* Header game-style */}
+      <div style={{padding:"32px 24px 20px",textAlign:"center",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+        <div style={{fontSize:"52px",filter:"drop-shadow(0 4px 16px rgba(52,211,153,0.5))"}}>🥷</div>
+        <h1 style={{fontSize:"30px",fontWeight:900,margin:"10px 0 2px",letterSpacing:"1px"}}>TREINO DO PEDRO</h1>
+        <p style={{color:"rgba(107,114,128,1)",fontSize:"14px",fontWeight:600,margin:0,letterSpacing:"2px",textTransform:"uppercase"}}>Números Inteiros · Modo Campanha</p>
       </div>
-      <div style={{padding:"0 20px",display:"flex",flexDirection:"column",gap:"14px",maxWidth:"440px",margin:"0 auto"}}>
+      {/* Level select */}
+      <div style={{padding:"16px 16px 0",display:"flex",flexDirection:"column",gap:"10px",maxWidth:"440px",margin:"0 auto"}}>
         {BLOCOS.map((b,i)=>{
           const desbloqueado=blocoDesbloqueado(i);
           const sessoes=getSessoes(b.id);
           const dominado=sessoes>=b.sessoesNecessarias;
+          const stars=dominado?b.sessoesNecessarias:sessoes;
           return(
             <button key={b.id} onClick={()=>desbloqueado&&iniciar(i)}
-              style={{width:"100%",textAlign:"left",padding:"16px 18px",borderRadius:"14px",
-                border:desbloqueado?"none":"1px solid rgba(255,255,255,0.07)",
-                cursor:desbloqueado?"pointer":"not-allowed",
-                background:desbloqueado?`linear-gradient(135deg,${b.grad[0]},${b.grad[1]})`:"rgba(255,255,255,0.04)",
-                boxShadow:desbloqueado?`0 3px 12px ${b.grad[0]}33`:"none",
-                opacity:desbloqueado?1:0.4}}>
-              <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-                <span style={{fontSize:"28px"}}>{desbloqueado?b.emoji:"🔒"}</span>
-                <div style={{flex:1}}>
+              style={{width:"100%",textAlign:"left",padding:"14px 16px",borderRadius:"12px",
+                border:desbloqueado?"1px solid rgba(255,255,255,0.08)":"1px solid rgba(255,255,255,0.04)",
+                cursor:desbloqueado?"pointer":"default",
+                background:desbloqueado?`linear-gradient(135deg,${b.grad[0]}cc,${b.grad[1]}cc)`:"rgba(255,255,255,0.03)",
+                boxShadow:desbloqueado?`0 4px 20px ${b.grad[0]}44,inset 0 1px 0 rgba(255,255,255,0.1)`:"none",
+                opacity:desbloqueado?1:0.35,position:"relative"}}>
+              <div style={{display:"flex",alignItems:"center",gap:"14px"}}>
+                {/* Número da fase */}
+                <div style={{minWidth:"44px",height:"44px",borderRadius:"10px",background:"rgba(0,0,0,0.3)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.12)"}}>
+                  <span style={{color:"rgba(255,255,255,0.5)",fontSize:"9px",fontWeight:800,letterSpacing:"1px"}}>FASE</span>
+                  <span style={{color:"#fff",fontSize:"20px",fontWeight:900,lineHeight:1}}>{i+1}</span>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}}>
-                    <p style={{fontWeight:800,color:desbloqueado?"#fff":"rgba(156,163,175,0.5)",fontSize:"18px",margin:0}}>{b.titulo}</p>
-                    {dominado&&<span style={{background:"rgba(52,211,153,0.18)",color:"#6EE7B7",fontSize:"11px",fontWeight:800,padding:"2px 7px",borderRadius:"6px"}}>dominado</span>}
+                    <p style={{fontWeight:900,color:desbloqueado?"#fff":"rgba(156,163,175,0.4)",fontSize:"19px",margin:0,lineHeight:1.2}}>{b.emoji} {b.titulo}</p>
                   </div>
-                  <p style={{color:desbloqueado?"rgba(255,255,255,0.6)":"rgba(107,114,128,0.4)",fontSize:"15px",fontWeight:600,margin:"2px 0 0"}}>
-                    {desbloqueado?b.desc:"Complete o bloco anterior primeiro"}
-                  </p>
-                  {/* Barra de progresso de sessões — laudo: Pedro precisa ver onde está */}
-                  {desbloqueado&&!dominado&&(
-                    <div style={{marginTop:"8px"}}>
-                      <div style={{display:"flex",gap:"4px",marginBottom:"3px"}}>
-                        {Array.from({length:b.sessoesNecessarias},(_,idx)=>(
-                          <div key={idx} style={{flex:1,height:"4px",borderRadius:"2px",
-                            background:idx<sessoes?"rgba(255,255,255,0.8)":"rgba(255,255,255,0.18)"}}/>
-                        ))}
-                      </div>
-                      <p style={{color:"rgba(255,255,255,0.45)",fontSize:"13px",fontWeight:600,margin:0}}>
-                        {sessoes===0?`${b.sessoesNecessarias} sessões para dominar`:`${sessoes} de ${b.sessoesNecessarias} sessões`}
-                      </p>
+                  {desbloqueado&&(
+                    <div style={{display:"flex",gap:"2px",marginTop:"5px"}}>
+                      {Array.from({length:b.sessoesNecessarias},(_,idx)=>(
+                        <span key={idx} style={{fontSize:"13px",opacity:idx<stars?1:0.25}}>⭐</span>
+                      ))}
+                      {dominado&&<span style={{fontSize:"11px",color:"#6EE7B7",fontWeight:800,marginLeft:"6px",alignSelf:"center"}}>CONCLUÍDA</span>}
                     </div>
                   )}
+                  {!desbloqueado&&<p style={{color:"rgba(107,114,128,0.4)",fontSize:"13px",fontWeight:600,margin:"3px 0 0"}}>🔒 Conclua a fase anterior</p>}
                 </div>
-                <span style={{color:"rgba(255,255,255,0.35)",fontSize:"20px"}}>{desbloqueado?"›":""}</span>
+                {desbloqueado&&<span style={{color:"rgba(255,255,255,0.5)",fontSize:"22px",fontWeight:900}}>›</span>}
               </div>
             </button>
           );
@@ -643,83 +641,81 @@ function App(){
     const temProximo=proximoIndex<BLOCOS.length;
     return(
       <><style>{css}</style>
-      <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",display:"flex",flexDirection:"column",alignItems:"center",padding:"36px 24px 50px",gap:"18px"}}>
-        <div style={{fontSize:"52px"}} className="bn">🐕</div>
-
+      <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",display:"flex",flexDirection:"column",alignItems:"center",padding:"30px 16px 50px",gap:"16px"}}>
+        {/* Hero section */}
         <div style={{textAlign:"center"}}>
-          <h2 style={{fontSize:"24px",fontWeight:800,color:"#FBBF24",margin:"0 0 6px"}}>
-            {dominado&&!precisaRepetir?"Bloco dominado!":"Sessão concluída"}
+          <div style={{fontSize:"68px",filter:"drop-shadow(0 4px 20px rgba(52,211,153,0.6))"}} className="bn">🥷</div>
+          <h2 style={{fontSize:"32px",fontWeight:900,color:dominado&&!precisaRepetir?"#6EE7B7":"#FBBF24",margin:"12px 0 4px",letterSpacing:".5px"}}>
+            {dominado&&!precisaRepetir?"FASE VENCIDA! 🏆":"RODADA CONCLUÍDA"}
           </h2>
           <p style={{color:"rgba(156,163,175,1)",fontSize:"16px",fontWeight:600,margin:0}}>
-            {B.emoji} {B.titulo}
+            FASE {bi+1} · {B.emoji} {B.titulo}
           </p>
         </div>
 
-        {/* Barra de progresso de sessões */}
-        <div style={{width:"100%",maxWidth:"400px"}}>
-          <div style={{display:"flex",gap:"6px",marginBottom:"8px"}}>
+        {/* Estrelas de progresso */}
+        <div style={{width:"100%",maxWidth:"400px",textAlign:"center"}}>
+          <div style={{display:"flex",justifyContent:"center",gap:"8px",marginBottom:"6px"}}>
             {Array.from({length:B.sessoesNecessarias},(_,idx)=>(
-              <div key={idx} style={{flex:1,height:"10px",borderRadius:"5px",
-                background:idx<sessoesFeitasAgora?`linear-gradient(90deg,${g0},${g1})`:"rgba(255,255,255,0.15)"}}/>
+              <span key={idx} style={{fontSize:"30px",filter:idx<sessoesFeitasAgora?"drop-shadow(0 0 8px rgba(251,191,36,0.8))":"none",opacity:idx<sessoesFeitasAgora?1:0.2,transition:"all 0.5s"}}>⭐</span>
             ))}
           </div>
-          <p style={{color:"rgba(156,163,175,1)",textAlign:"center",fontSize:"14px",fontWeight:600,margin:0}}>
-            {dominado?`${B.sessoesNecessarias} sessões concluídas`:`Sessão ${sessoesFeitasAgora} de ${B.sessoesNecessarias}`}
+          <p style={{color:"rgba(107,114,128,1)",fontSize:"13px",fontWeight:700,margin:0,letterSpacing:"1px",textTransform:"uppercase"}}>
+            {dominado?`Fase dominada!`:`Rodada ${sessoesFeitasAgora} de ${B.sessoesNecessarias}`}
           </p>
         </div>
 
-        {/* Resumo numérico */}
-        <div style={{width:"100%",maxWidth:"400px",background:"rgba(255,255,255,0.05)",borderRadius:"20px",padding:"20px",border:"1px solid rgba(255,255,255,0.08)"}}>
-          <p style={{color:"rgba(156,163,175,1)",fontSize:"13px",fontWeight:700,margin:"0 0 12px",textTransform:"uppercase",letterSpacing:".8px"}}>Resultado desta sessão</p>
+        {/* Placar da rodada */}
+        <div style={{width:"100%",maxWidth:"400px",background:"rgba(255,255,255,0.04)",borderRadius:"16px",padding:"18px",border:"1px solid rgba(255,255,255,0.08)"}}>
+          <p style={{color:"rgba(107,114,128,1)",fontSize:"11px",fontWeight:800,margin:"0 0 14px",textTransform:"uppercase",letterSpacing:"1.5px"}}>Placar desta rodada</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",textAlign:"center"}}>
-            <div style={{background:"rgba(52,211,153,0.1)",borderRadius:"14px",padding:"12px 6px"}}>
-              <div style={{fontSize:"32px",fontWeight:900,color:"#6EE7B7"}}>{ok}</div>
-              <div style={{fontSize:"13px",color:"rgba(156,163,175,1)",fontWeight:700,marginTop:"4px"}}>✅ Direto</div>
+            <div style={{background:"rgba(52,211,153,0.1)",borderRadius:"12px",padding:"14px 6px",border:"1px solid rgba(52,211,153,0.15)"}}>
+              <div style={{fontSize:"38px",fontWeight:900,color:"#6EE7B7",lineHeight:1}}>{ok}</div>
+              <div style={{fontSize:"11px",color:"rgba(52,211,153,0.7)",fontWeight:800,marginTop:"6px",letterSpacing:".5px",textTransform:"uppercase"}}>Perfeito</div>
             </div>
-            <div style={{background:"rgba(147,197,253,0.1)",borderRadius:"14px",padding:"12px 6px"}}>
-              <div style={{fontSize:"32px",fontWeight:900,color:"#93C5FD"}}>{dc}</div>
-              <div style={{fontSize:"13px",color:"rgba(156,163,175,1)",fontWeight:700,marginTop:"4px"}}>💡 Com apoio</div>
+            <div style={{background:"rgba(147,197,253,0.1)",borderRadius:"12px",padding:"14px 6px",border:"1px solid rgba(147,197,253,0.15)"}}>
+              <div style={{fontSize:"38px",fontWeight:900,color:"#93C5FD",lineHeight:1}}>{dc}</div>
+              <div style={{fontSize:"11px",color:"rgba(147,197,253,0.7)",fontWeight:800,marginTop:"6px",letterSpacing:".5px",textTransform:"uppercase"}}>Com apoio</div>
             </div>
-            <div style={{background:"rgba(252,165,165,0.1)",borderRadius:"14px",padding:"12px 6px"}}>
-              <div style={{fontSize:"32px",fontWeight:900,color:"#FCA5A5"}}>{rv}</div>
-              <div style={{fontSize:"13px",color:"rgba(156,163,175,1)",fontWeight:700,marginTop:"4px"}}>⚠️ Revelou</div>
+            <div style={{background:"rgba(252,165,165,0.1)",borderRadius:"12px",padding:"14px 6px",border:"1px solid rgba(252,165,165,0.15)"}}>
+              <div style={{fontSize:"38px",fontWeight:900,color:"#FCA5A5",lineHeight:1}}>{rv}</div>
+              <div style={{fontSize:"11px",color:"rgba(252,165,165,0.7)",fontWeight:800,marginTop:"6px",letterSpacing:".5px",textTransform:"uppercase"}}>Revelou</div>
             </div>
           </div>
         </div>
+
+        {/* Desbloqueio de nova fase */}
+        {dominado&&!precisaRepetir&&temProximo&&(
+          <div style={{width:"100%",maxWidth:"400px",background:"rgba(0,50,25,0.4)",border:"2px solid rgba(52,211,153,0.4)",borderRadius:"14px",padding:"14px 18px",textAlign:"center"}}>
+            <p style={{color:"#6EE7B7",fontSize:"17px",fontWeight:900,margin:0}}>🔓 FASE {bi+2} DESBLOQUEADA!</p>
+            <p style={{color:"rgba(52,211,153,0.6)",fontSize:"14px",fontWeight:600,margin:"4px 0 0"}}>{BLOCOS[proximoIndex].emoji} {BLOCOS[proximoIndex].titulo}</p>
+          </div>
+        )}
 
         {/* Recomendação — laudo: Pedro não vê erro; mãe recebe via WhatsApp */}
         {precisaRepetir&&(
-          <div style={{width:"100%",maxWidth:"400px",background:"rgba(120,80,0,0.3)",border:"2px solid rgba(251,191,36,0.5)",borderRadius:"18px",padding:"16px 18px"}}>
-            <p style={{color:"#FDE68A",fontSize:"17px",fontWeight:700,margin:"0 0 4px"}}>Que tal repetir mais uma vez?</p>
-            <p style={{color:"rgba(253,230,138,0.65)",fontSize:"15px",fontWeight:600,margin:0}}>Repetir ajuda a fixar melhor.</p>
+          <div style={{width:"100%",maxWidth:"400px",background:"rgba(90,60,0,0.3)",border:"1px solid rgba(251,191,36,0.35)",borderRadius:"14px",padding:"14px 18px"}}>
+            <p style={{color:"#FDE68A",fontSize:"16px",fontWeight:700,margin:0}}>Quer tentar mais uma rodada? Treinar mais ajuda a fixar.</p>
           </div>
         )}
 
-        {dominado&&!precisaRepetir&&temProximo&&(
-          <div style={{width:"100%",maxWidth:"400px",background:"rgba(0,60,30,0.3)",border:"2px solid rgba(52,211,153,0.5)",borderRadius:"18px",padding:"16px 18px",textAlign:"center"}}>
-            <p style={{color:"#6EE7B7",fontSize:"18px",fontWeight:800,margin:0}}>🔓 {BLOCOS[proximoIndex].emoji} {BLOCOS[proximoIndex].titulo} desbloqueado!</p>
-          </div>
-        )}
-
-        <div style={{width:"100%",maxWidth:"400px",display:"flex",flexDirection:"column",gap:"12px"}}>
+        {/* Ações */}
+        <div style={{width:"100%",maxWidth:"400px",display:"flex",flexDirection:"column",gap:"10px"}}>
           {/* Botão da mãe com relatório detalhado — laudo: mediação externa essencial */}
           <BtnMae tipo="rel"/>
-          <button onClick={()=>wa("dv")}
-            style={{width:"100%",padding:"18px",borderRadius:"22px",border:"2px solid rgba(245,158,11,0.4)",background:"transparent",color:"#F59E0B",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
-            🐕 Tenho uma dúvida
-          </button>
-          <button onClick={()=>iniciar(bi)}
-            style={{width:"100%",padding:"18px",borderRadius:"22px",border:"2px solid rgba(255,255,255,0.12)",background:"transparent",color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
-            🔄 Repetir este bloco
-          </button>
-          {dominado&&temProximo&&!precisaRepetir&&(
-            <button onClick={()=>iniciar(proximoIndex)} style={btnP}>
-              Próximo bloco →
+          {dominado&&temProximo&&!precisaRepetir?(
+            <button onClick={()=>iniciar(proximoIndex)} style={{...btnP,padding:"19px",fontSize:"20px",fontWeight:900}}>
+              Próxima Fase → FASE {bi+2}
+            </button>
+          ):(
+            <button onClick={()=>iniciar(bi)}
+              style={{width:"100%",padding:"17px",borderRadius:"12px",border:"none",background:`linear-gradient(135deg,${g0},${g1})`,color:"#fff",fontSize:"18px",fontWeight:800,cursor:"pointer"}}>
+              🔄 Repetir Rodada
             </button>
           )}
           <button onClick={()=>setTela("home")}
-            style={{width:"100%",padding:"18px",borderRadius:"22px",border:"none",background:"rgba(255,255,255,0.07)",color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:800,cursor:"pointer"}}>
-            🏠 Início
+            style={{width:"100%",padding:"14px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.05)",color:"rgba(209,213,219,1)",fontSize:"17px",fontWeight:700,cursor:"pointer"}}>
+            ← Menu Principal
           </button>
         </div>
       </div></>
@@ -738,50 +734,48 @@ function App(){
     <div style={{minHeight:"100vh",background:"#0B0F1A",color:"#fff",paddingBottom:"36px"}}>
 
       {/* HEADER */}
-      <div style={{padding:"14px 18px 16px",background:`linear-gradient(160deg,${g0}ee,${g1}cc)`}}>
+      <div style={{padding:"14px 16px 14px",background:`linear-gradient(160deg,${g0},${g1}bb)`,borderBottom:`2px solid ${g1}66`}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"8px"}}>
-          <button onClick={()=>setTela("home")} style={{color:"rgba(255,255,255,0.75)",fontSize:"16px",fontWeight:700,background:"none",border:"none",cursor:"pointer",padding:"4px 0"}}>← Início</button>
+          <button onClick={()=>setTela("home")} style={{color:"rgba(255,255,255,0.65)",fontSize:"15px",fontWeight:700,background:"none",border:"none",cursor:"pointer",padding:"4px 0"}}>← Menu</button>
           <div style={{textAlign:"center"}}>
-            <p style={{color:"#fff",fontWeight:800,fontSize:"16px",margin:0}}>{B.emoji} {B.titulo}</p>
-            {/* Indicador de sessão — laudo: Pedro sabe em que sessão está */}
-            <p style={{color:"rgba(255,255,255,0.6)",fontSize:"12px",fontWeight:600,margin:"1px 0 0"}}>
-              Sessão {Math.min(sessaoAtual,B.sessoesNecessarias)} de {B.sessoesNecessarias}
-            </p>
+            {/* Fase e rodada — terminologia de jogo */}
+            <p style={{color:"rgba(255,255,255,0.5)",fontSize:"10px",fontWeight:800,margin:"0 0 1px",letterSpacing:"2px",textTransform:"uppercase"}}>FASE {bi+1} · RODADA {Math.min(sessaoAtual,B.sessoesNecessarias)}/{B.sessoesNecessarias}</p>
+            <p style={{color:"#fff",fontWeight:900,fontSize:"17px",margin:0,letterSpacing:".3px"}}>{B.emoji} {B.titulo}</p>
           </div>
           {/* Botão da mãe no header — sempre visível — laudo: raramente pede ajuda */}
           <button onClick={()=>wa("dv")}
-            style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"10px",width:"44px",height:"44px",fontSize:"18px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>❤️</button>
+            style={{background:"rgba(0,0,0,0.25)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"10px",width:"44px",height:"44px",fontSize:"18px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>❤️</button>
         </div>
         {fase==="qs"&&(
           <div style={{display:"flex",gap:"4px",marginBottom:"10px"}}>
-            {B.questoes.map((_,i)=><div key={i} style={{flex:1,height:"4px",borderRadius:"2px",background:i<=qi?"rgba(255,255,255,0.85)":"rgba(255,255,255,0.2)",transition:"background 0.3s"}}/>)}
+            {B.questoes.map((_,i)=><div key={i} style={{flex:1,height:"6px",borderRadius:"3px",background:i<=qi?`rgba(255,255,255,0.9)`:"rgba(0,0,0,0.3)",boxShadow:i<=qi?"0 0 6px rgba(255,255,255,0.4)":"none",transition:"all 0.3s"}}/>)}
           </div>
         )}
         <div style={{textAlign:"center"}}>
-          <span style={{fontSize:"40px",display:"inline-block"}} className={dog}>🐕</span>
+          <span style={{fontSize:"48px",display:"inline-block"}} className={dog}>🥷</span>
         </div>
       </div>
 
-      <div style={{padding:"18px 18px",maxWidth:"440px",margin:"0 auto",display:"flex",flexDirection:"column",gap:"16px"}}>
-        <p style={{textAlign:"center",color:"rgba(107,114,128,0.7)",fontSize:"15px",fontWeight:600,margin:0}}>
-          {fase==="rev"&&"Revisão rápida antes de começar"}
-          {fase==="slides"&&`Conteúdo — parte ${si+1} de ${B.slides.length}`}
-          {fase==="qs"&&`Questão ${qi+1} de ${B.questoes.length}`}
+      <div style={{padding:"16px 16px",maxWidth:"440px",margin:"0 auto",display:"flex",flexDirection:"column",gap:"14px"}}>
+        <p style={{textAlign:"center",color:"rgba(107,114,128,0.7)",fontSize:"13px",fontWeight:700,margin:0,letterSpacing:"1.5px",textTransform:"uppercase"}}>
+          {fase==="rev"&&"⚡ Revisão Rápida"}
+          {fase==="slides"&&`📖 Parte ${si+1} de ${B.slides.length}`}
+          {fase==="qs"&&`⚔️ Missão ${qi+1} de ${B.questoes.length}`}
         </p>
 
         {/* REVISÃO */}
         {fase==="rev"&&rv2&&(
           <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
-            <div style={{background:"rgba(37,99,235,0.2)",border:"2px solid rgba(59,130,246,0.4)",borderRadius:"22px",padding:"20px 22px"}}>
-              <p style={{color:"#93C5FD",fontSize:"17px",fontWeight:800,margin:"0 0 10px"}}>🔄 REVISÃO RÁPIDA</p>
-              <p style={{color:"#fff",fontSize:"21px",fontWeight:900,margin:0,lineHeight:1.4}}>{rv2.perg}</p>
+            <div style={{background:"rgba(37,99,235,0.2)",border:"2px solid rgba(59,130,246,0.4)",borderRadius:"14px",padding:"18px 20px"}}>
+              <p style={{color:"#93C5FD",fontSize:"13px",fontWeight:800,margin:"0 0 10px",letterSpacing:"1.5px"}}>⚡ REVISÃO RÁPIDA</p>
+              <p style={{color:"#fff",fontSize:"26px",fontWeight:900,margin:0,lineHeight:1.35}}>{rv2.perg}</p>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+            <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
               {rv2.ops.map((o,i)=>(
                 <button key={i} onClick={()=>{
                   if(i===rv2.ok){setHumor("f");setTimeout(()=>{setHumor("n");avan();},900);}
                   else{setHumor("c");setTimeout(()=>setHumor("n"),900);}
-                }} style={{width:"100%",textAlign:"left",padding:"18px 20px",borderRadius:"18px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.07)",color:"#E5E7EB",fontSize:"20px",fontWeight:700,cursor:"pointer"}}>{o}</button>
+                }} style={{width:"100%",minHeight:"58px",textAlign:"left",padding:"14px 18px",borderRadius:"12px",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.07)",color:"#E5E7EB",fontSize:"21px",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center"}}>{o}</button>
               ))}
             </div>
           </div>
@@ -790,26 +784,26 @@ function App(){
         {/* SLIDES */}
         {fase==="slides"&&sl&&(
           <>
-            <h2 style={{fontSize:"23px",fontWeight:900,color:"#FBBF24",margin:0,lineHeight:1.3}}>{sl.titulo}</h2>
+            <h2 style={{fontSize:"26px",fontWeight:900,color:"#FBBF24",margin:0,lineHeight:1.25,letterSpacing:".2px"}}>{sl.titulo}</h2>
             <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
               {sl.itens.map((it,i)=><Item key={i} item={it}/>)}
             </div>
-            <button onClick={avan} style={btnP}>{si<B.slides.length-1?"Continuar →":"Vamos praticar! →"}</button>
+            <button onClick={avan} style={btnP}>{si<B.slides.length-1?"Continuar →":"⚔️ Iniciar Missões →"}</button>
           </>
         )}
 
         {/* QUESTÕES */}
         {fase==="qs"&&q&&(
           <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
-            <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"16px",padding:"18px 20px",border:"1px solid rgba(255,255,255,0.08)"}}>
-              <p style={{color:"rgba(107,114,128,1)",fontSize:"15px",fontWeight:600,margin:"0 0 6px"}}>{q.ctx}</p>
-              <p style={{color:"#fff",fontSize:"21px",fontWeight:800,margin:0,lineHeight:1.45}}>{q.perg}</p>
+            <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"14px",padding:"18px 20px",border:"1px solid rgba(255,255,255,0.08)"}}>
+              <p style={{color:"rgba(107,114,128,1)",fontSize:"17px",fontWeight:600,margin:"0 0 8px"}}>{q.ctx}</p>
+              <p style={{color:"#fff",fontSize:"27px",fontWeight:900,margin:0,lineHeight:1.35}}>{q.perg}</p>
             </div>
 
             {/* Reta numérica — sempre visível — laudo: memória operacional frágil, canal visuoespacial preservado */}
             {q.nl&&(
               <div style={{background:"rgba(255,255,255,0.05)",borderRadius:"14px",padding:"12px 16px",border:"1px solid rgba(251,191,36,0.3)"}}>
-                <p style={{color:"rgba(251,191,36,0.8)",fontSize:"14px",fontWeight:600,margin:"0 0 6px",letterSpacing:".2px"}}>🐕 Reta numérica</p>
+                <p style={{color:"rgba(251,191,36,0.8)",fontSize:"14px",fontWeight:600,margin:"0 0 6px",letterSpacing:".2px"}}>🥷 Reta numérica</p>
                 <Reta hl={q.nl.hl??null} start={q.nl.start??null} end={q.nl.end??null} dist={q.nl.dist??false} animar/>
               </div>
             )}
@@ -833,7 +827,7 @@ function App(){
                 }
                 return(
                   <button key={i} onClick={()=>sel==null?pick(i):null}
-                    style={{width:"100%",minHeight:"58px",textAlign:"left",padding:"14px 18px",borderRadius:"13px",border:br,background:bg,color:fc,fontSize:"19px",fontWeight:700,cursor:sel==null?"pointer":"default",transition:"opacity 0.25s,background 0.2s,border 0.2s",display:"flex",alignItems:"center",opacity:op}}>
+                    style={{width:"100%",minHeight:"66px",textAlign:"left",padding:"16px 20px",borderRadius:"12px",border:br,background:bg,color:fc,fontSize:"22px",fontWeight:700,cursor:sel==null?"pointer":"default",transition:"opacity 0.25s,background 0.2s,border 0.2s,box-shadow 0.2s",display:"flex",alignItems:"center",opacity:op,boxShadow:sel===i&&acertou?"0 0 18px rgba(52,211,153,0.35)":sel===i&&!acertou?"0 0 14px rgba(248,113,113,0.25)":"none"}}>
                     {prefix}{o}
                   </button>
                 );
@@ -847,14 +841,14 @@ function App(){
                 border:acertou?"2px solid rgba(52,211,153,0.55)":"1px solid rgba(255,255,255,0.08)"}}>
                 {acertou?(
                   <>
-                    <p style={{color:"#6EE7B7",fontWeight:800,fontSize:"19px",margin:"0 0 6px"}}>Correto! 🎯</p>
-                    <p style={{color:"rgba(209,213,219,1)",fontSize:"17px",fontWeight:600,margin:0,lineHeight:1.55}}>{q.feed}</p>
+                    <p style={{color:"#6EE7B7",fontWeight:900,fontSize:"28px",margin:"0 0 6px",letterSpacing:".5px"}}>CORRETO! 🎯</p>
+                    <p style={{color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:600,margin:0,lineHeight:1.55}}>{q.feed}</p>
                   </>
                 ):rev?(
                   // Nunca "errado" — laudo: medo de errar, perfeccionismo
                   <>
-                    <p style={{color:"#FBBF24",fontWeight:800,fontSize:"18px",margin:"0 0 6px"}}>Veja como fica:</p>
-                    <p style={{color:"rgba(209,213,219,1)",fontSize:"17px",fontWeight:600,margin:0,lineHeight:1.55}}>{q.feed}</p>
+                    <p style={{color:"#FBBF24",fontWeight:900,fontSize:"22px",margin:"0 0 6px"}}>Veja como fica 👇</p>
+                    <p style={{color:"rgba(209,213,219,1)",fontSize:"19px",fontWeight:600,margin:0,lineHeight:1.55}}>{q.feed}</p>
                   </>
                 ):null}
               </div>
@@ -862,7 +856,7 @@ function App(){
 
             {(acertou||rev)&&(
               <button onClick={avan} style={btnP}>
-                {qi<B.questoes.length-1?"Próxima questão →":"Concluir sessão 🏁"}
+                {qi<B.questoes.length-1?"Próxima missão →":"Concluir rodada 🏁"}
               </button>
             )}
           </div>
