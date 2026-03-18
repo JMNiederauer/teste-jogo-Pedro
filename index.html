@@ -52,6 +52,7 @@ const BLOCOS = [
     id:1, emoji:"🎮", titulo:"Números no Dia a Dia",
     desc:"Negativos que você já conhece",
     sessoesNecessarias:2,
+    ancora:{v:"👈 NEGATIVOS  ←  0  →  POSITIVOS 👉"},
     // lembrete: mostrado ao iniciar sessão 2+ — laudo: memória episódica GRAVE
     lembrete:{
       titulo:"Lembrou? ↓",
@@ -102,6 +103,7 @@ const BLOCOS = [
     id:2, emoji:"📍", titulo:"A Reta Numérica",
     desc:"O mapa de todos os números",
     sessoesNecessarias:2,
+    ancora:{v:"Mais à direita = MAIOR\nMais à esquerda = MENOR"},
     grad:["#5B21B6","#7C3AED"],
     revisao:[
       {perg:"Vida −30 no Roblox =",ops:["Tem 30 de vida","Tomou dano além do limite","Ganhou 30"],ok:1},
@@ -142,6 +144,7 @@ const BLOCOS = [
     id:3, emoji:"📏", titulo:"Módulo — a distância",
     desc:"Quantos passos até o zero?",
     sessoesNecessarias:2,
+    ancora:{v:"|n| = distância até o zero\n(sempre ≥ 0)"},
     grad:["#065F46","#10B981"],
     revisao:[
       {perg:"−4 fica à esquerda ou direita do zero?",ops:["À direita","No zero","À esquerda"],ok:2},
@@ -183,6 +186,7 @@ const BLOCOS = [
     id:4, emoji:"🪞", titulo:"Simétrico e Oposto",
     desc:"O reflexo no espelho",
     sessoesNecessarias:2,
+    ancora:{v:"Simétrico = mesmo módulo\nlado OPOSTO ao zero"},
     grad:["#92400E","#F59E0B"],
     revisao:[
       {perg:"|−9| é igual a:",ops:["−9","0","9"],ok:2},
@@ -213,6 +217,7 @@ const BLOCOS = [
     id:5, emoji:"👣", titulo:"Sucessor e Antecessor",
     desc:"Um passo para frente ou para trás",
     sessoesNecessarias:2,
+    ancora:{v:"Suc → +1 à DIREITA 👉\nAnt → −1 à ESQUERDA 👈"},
     grad:["#991B1B","#EF4444"],
     revisao:[
       {perg:"Simétrico de −6 é:",ops:["−6","0","+6"],ok:2},
@@ -246,6 +251,7 @@ const BLOCOS = [
     id:6, emoji:"➕", titulo:"Adição com Inteiros",
     desc:"Caminhar na reta para somar",
     sessoesNecessarias:3,
+    ancora:{v:"+ positivo → DIREITA 👉\n− negativo → ESQUERDA 👈"},
     grad:["#4C1D95","#8B5CF6"],
     revisao:[
       {perg:"Sucessor de −7 é:",ops:["−8","−7","−6"],ok:2},
@@ -288,6 +294,7 @@ const BLOCOS = [
     id:7, emoji:"⚖️", titulo:"Neutro e Oposto",
     desc:"Zero não move. Oposto volta ao zero.",
     sessoesNecessarias:2,
+    ancora:{v:"n + 0 = n  (neutro)\nn + (−n) = 0  (oposto)"},
     grad:["#831843","#DB2777"],
     revisao:[
       {perg:"3+(−7)=?",ops:["+10","+4","−4"],ok:2},
@@ -322,6 +329,7 @@ const BLOCOS = [
     id:8, emoji:"➖", titulo:"Subtração com Inteiros",
     desc:"Subtrair é adicionar o oposto",
     sessoesNecessarias:3,
+    ancora:{v:"a − b  =  a + (−b)\ntroca o sinal e soma!"},
     grad:["#9A3412","#F97316"],
     revisao:[
       {perg:"−4 + 4 = ?",ops:["8","−8","0"],ok:2},
@@ -480,6 +488,7 @@ function App(){
   const [ri,setRi]=useState(0);
   const [si,setSi]=useState(0);
   const [qi,setQi]=useState(0);
+  const [ii,setIi]=useState(0);
   const [sel,setSel]=useState(null);
   const [tent,setTent]=useState(0);
   // retaVis: reta disponível ANTES do erro — laudo: suporte antecipado, não como punição
@@ -516,9 +525,11 @@ function App(){
     setHumor("n");rst();
     if(fase==="rev"){
       if(B.revisao&&ri<B.revisao.length-1) setRi(r=>r+1);
-      else{ setFase("slides");setSi(0); }
+      else{ setFase("slides");setSi(0);setIi(0); }
     }else if(fase==="slides"){
-      if(si<B.slides.length-1) setSi(s=>s+1);
+      const itens=B.slides[si].itens;
+      if(ii<itens.length-1){ setIi(i=>i+1); }
+      else if(si<B.slides.length-1){ setSi(s=>s+1);setIi(0); }
       else{ setFase("qs");setQi(0); }
     }else{
       if(qi<B.questoes.length-1) setQi(q=>q+1);
@@ -530,7 +541,7 @@ function App(){
   };
 
   const iniciar=i=>{
-    setBi(i);setTela("bloco");rst();setRi(0);setSi(0);setQi(0);setHumor("n");setLog([]);
+    setBi(i);setTela("bloco");rst();setRi(0);setSi(0);setQi(0);setIi(0);setHumor("n");setLog([]);
     setFase(BLOCOS[i].revisao?"rev":"slides");
   };
 
@@ -744,6 +755,9 @@ function App(){
   const q=fase==="qs"?B.questoes[qi]:null;
   const rv2=(fase==="rev"&&B.revisao)?B.revisao[ri]:null;
   const sl=fase==="slides"?B.slides[si]:null;
+  const totalItens=B.slides.reduce((a,s)=>a+s.itens.length,0);
+  const itensAntes=B.slides.slice(0,si).reduce((a,s)=>a+s.itens.length,0);
+  const itemAtual=itensAntes+ii+1;
   const acertou=sel!=null&&q&&sel===q.ok;
   const sessaoAtual=getSessoes(B.id)+1;
 
@@ -777,7 +791,7 @@ function App(){
       <div style={{padding:"16px 16px",maxWidth:"440px",margin:"0 auto",display:"flex",flexDirection:"column",gap:"14px"}}>
         <p style={{textAlign:"center",color:"rgba(107,114,128,0.7)",fontSize:"13px",fontWeight:700,margin:0,letterSpacing:"1.5px",textTransform:"uppercase"}}>
           {fase==="rev"&&"⚡ Revisão Rápida"}
-          {fase==="slides"&&`📖 Parte ${si+1} de ${B.slides.length}`}
+          {fase==="slides"&&`📖 Conceito ${itemAtual} de ${totalItens}`}
           {fase==="qs"&&`⚔️ Missão ${qi+1} de ${B.questoes.length}`}
         </p>
 
@@ -799,20 +813,37 @@ function App(){
           </div>
         )}
 
-        {/* SLIDES */}
+        {/* SLIDES — 1 item por tela, canal visuoespacial do Pedro */}
         {fase==="slides"&&sl&&(
           <>
             <h2 style={{fontSize:"26px",fontWeight:900,color:"#FBBF24",margin:0,lineHeight:1.25,letterSpacing:".2px"}}>{sl.titulo}</h2>
+            {/* Indicador de pontos — posição espacial dentro do slide */}
+            {sl.itens.length>1&&(
+              <div style={{display:"flex",gap:"6px",justifyContent:"center",padding:"4px 0"}}>
+                {sl.itens.map((_,idx)=>(
+                  <div key={idx} style={{width:idx===ii?"24px":"8px",height:"8px",borderRadius:"4px",background:idx===ii?"#FBBF24":idx<ii?"rgba(251,191,36,0.4)":"rgba(255,255,255,0.15)",transition:"all 0.3s"}}/>
+                ))}
+              </div>
+            )}
             <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
-              {sl.itens.map((it,i)=><Item key={i} item={it}/>)}
+              <Item key={`${si}-${ii}`} item={sl.itens[ii]}/>
             </div>
-            <button onClick={avan} style={btnP}>{si<B.slides.length-1?"Continuar →":"⚔️ Iniciar Missões →"}</button>
+            <button onClick={avan} style={btnP}>
+              {ii<sl.itens.length-1||si<B.slides.length-1?"Continuar →":"⚔️ Iniciar Missões →"}
+            </button>
           </>
         )}
 
         {/* QUESTÕES */}
         {fase==="qs"&&q&&(
           <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
+            {/* Âncora visual persistente — laudo: memória episódica GRAVE, canal visuoespacial */}
+            {B.ancora&&(
+              <div style={{background:"rgba(255,255,255,0.04)",borderLeft:"3px solid rgba(251,191,36,0.55)",borderRadius:"0 10px 10px 0",padding:"10px 14px"}}>
+                <p style={{color:"rgba(251,191,36,0.55)",fontSize:"11px",fontWeight:800,margin:"0 0 4px",letterSpacing:"1.5px",textTransform:"uppercase"}}>📌 lembrete</p>
+                <p style={{color:"#FDE68A",fontSize:"17px",fontWeight:800,margin:0,whiteSpace:"pre-line",lineHeight:1.5}}>{B.ancora.v}</p>
+              </div>
+            )}
             <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"14px",padding:"18px 20px",border:"1px solid rgba(255,255,255,0.08)"}}>
               <p style={{color:"rgba(107,114,128,1)",fontSize:"17px",fontWeight:600,margin:"0 0 8px"}}>{q.ctx}</p>
               <p style={{color:"#fff",fontSize:"27px",fontWeight:900,margin:0,lineHeight:1.35}}>{q.perg}</p>
